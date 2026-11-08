@@ -66,6 +66,22 @@ const info = components.map((name) => {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${name} · Agent-UI</title>
 <script>try { const t = localStorage.getItem("agent-ui.theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch {}</script>
+<script>
+// Inside the design system page, a preview must not scroll the page around it.
+// Focus does not scroll, and scrollIntoView moves only the element's own scroll box.
+if (window.top !== window) {
+  const focus = HTMLElement.prototype.focus;
+  HTMLElement.prototype.focus = function (options) { focus.call(this, { ...options, preventScroll: true }); };
+  Element.prototype.scrollIntoView = function () {
+    let box = this.parentElement;
+    while (box && !(box.scrollHeight > box.clientHeight && /auto|scroll/.test(getComputedStyle(box).overflowY))) box = box.parentElement;
+    if (!box) return;
+    const r = this.getBoundingClientRect(), b = box.getBoundingClientRect();
+    if (r.top < b.top) box.scrollTop -= b.top - r.top;
+    else if (r.bottom > b.bottom) box.scrollTop += r.bottom - b.bottom;
+  };
+}
+</script>
 ${FONTS}
 <link rel="stylesheet" href="../tokens.css">
 <link rel="stylesheet" href="../components/bundle.css">
