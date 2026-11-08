@@ -65,6 +65,7 @@ const info = components.map((name) => {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${name} · Agent-UI</title>
+<script>try { const t = localStorage.getItem("agent-ui.theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch {}</script>
 ${FONTS}
 <link rel="stylesheet" href="../tokens.css">
 <link rel="stylesheet" href="../components/bundle.css">
