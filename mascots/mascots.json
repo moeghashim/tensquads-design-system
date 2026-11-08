@@ -1,0 +1,212 @@
+[
+  {
+    "id": "master",
+    "name": "Petra",
+    "role": "Master",
+    "namedAfter": "Petra, Jordan",
+    "colourName": "Rose sandstone",
+    "palette": {
+      "light": "#FBD8D0",
+      "base": "#EBA196",
+      "deep": "#C9746A",
+      "limb": "#E3958A"
+    },
+    "shape": "An arched doorway with a round finial, like the Treasury carved into the rock at Petra.",
+    "why": "Petra opens the door to every job. It takes the request and hands each part to the right squadmate.",
+    "pose": "Waves the team in.",
+    "files": {
+      "svg": "mascots/svg/petra.svg",
+      "png": "mascots/png/petra.png",
+      "jpeg": "mascots/jpeg/petra.jpg"
+    }
+  },
+  {
+    "id": "orders",
+    "name": "Pisa",
+    "role": "Orders",
+    "namedAfter": "Pisa, Italy",
+    "colourName": "Marble blue",
+    "palette": {
+      "light": "#DCE8FF",
+      "base": "#97B7F5",
+      "deep": "#5F86D6",
+      "limb": "#8AACEE"
+    },
+    "shape": "A round tower with arcade bands and a bell top. It leans a little, like the tower at Pisa.",
+    "why": "Pisa carries orders out of the door. The lean makes it look busy and on the move.",
+    "pose": "Carries a parcel.",
+    "files": {
+      "svg": "mascots/svg/pisa.svg",
+      "png": "mascots/png/pisa.png",
+      "jpeg": "mascots/jpeg/pisa.jpg"
+    }
+  },
+  {
+    "id": "support",
+    "name": "Kyoto",
+    "role": "Support",
+    "namedAfter": "Kyoto, Japan",
+    "colourName": "Lantern vermilion",
+    "palette": {
+      "light": "#FFD3C7",
+      "base": "#F08B70",
+      "deep": "#CC5A40",
+      "limb": "#E98065"
+    },
+    "shape": "A paper lantern with ribs and two caps, like the lanterns on the streets of Kyoto.",
+    "why": "Kyoto lights the way for customers. It answers the inbox, so it wears a headset.",
+    "pose": "Listens on a headset.",
+    "files": {
+      "svg": "mascots/svg/kyoto.svg",
+      "png": "mascots/png/kyoto.png",
+      "jpeg": "mascots/jpeg/kyoto.jpg"
+    }
+  },
+  {
+    "id": "marketing",
+    "name": "Rio",
+    "role": "Marketing",
+    "namedAfter": "Rio de Janeiro, Brazil",
+    "colourName": "Carnival violet",
+    "palette": {
+      "light": "#E6DBFF",
+      "base": "#B194F2",
+      "deep": "#7E5ED0",
+      "limb": "#A88BEB"
+    },
+    "shape": "A tall rounded dome, like Sugarloaf Mountain above Rio.",
+    "why": "Rio stands tall so everyone sees it. It runs ads, social and email.",
+    "pose": "Calls out on a megaphone.",
+    "files": {
+      "svg": "mascots/svg/rio.svg",
+      "png": "mascots/png/rio.png",
+      "jpeg": "mascots/jpeg/rio.jpg"
+    }
+  },
+  {
+    "id": "finance",
+    "name": "Zurich",
+    "role": "Finance",
+    "namedAfter": "Zurich, Switzerland",
+    "colourName": "Vault silver",
+    "palette": {
+      "light": "#EEF1F6",
+      "base": "#B6C0CF",
+      "deep": "#7E8BA0",
+      "limb": "#A9B4C5"
+    },
+    "shape": "A thick coin with a milled edge, for the banks of Zurich.",
+    "why": "Zurich watches payouts, costs and profit. It keeps every coin in view.",
+    "pose": "Holds up a gold coin.",
+    "files": {
+      "svg": "mascots/svg/zurich.svg",
+      "png": "mascots/png/zurich.png",
+      "jpeg": "mascots/jpeg/zurich.jpg"
+    }
+  },
+  {
+    "id": "inventory",
+    "name": "Giza",
+    "role": "Inventory",
+    "namedAfter": "Giza, Egypt",
+    "colourName": "Desert orange",
+    "palette": {
+      "light": "#FFE1C4",
+      "base": "#F4A866",
+      "deep": "#D27A34",
+      "limb": "#EE9F5A"
+    },
+    "shape": "A pyramid of stacked blocks, like the pyramids at Giza.",
+    "why": "Giza counts stock block by block and talks to suppliers.",
+    "pose": "Carries a crate.",
+    "files": {
+      "svg": "mascots/svg/giza.svg",
+      "png": "mascots/png/giza.png",
+      "jpeg": "mascots/jpeg/giza.jpg"
+    }
+  },
+  {
+    "id": "market",
+    "name": "Machu",
+    "role": "Market researcher",
+    "namedAfter": "Machu Picchu, Peru",
+    "colourName": "Jade",
+    "palette": {
+      "light": "#D3F0DF",
+      "base": "#93D2B1",
+      "deep": "#5EA885",
+      "limb": "#86C7A5"
+    },
+    "shape": "A mountain peak with two terraces, like the slopes of Machu Picchu.",
+    "why": "Machu looks out from the top and sees the whole market. It has the largest lens, because it studies competitors up close.",
+    "pose": "Points up at something it found.",
+    "files": {
+      "svg": "mascots/svg/machu.svg",
+      "png": "mascots/png/machu.png",
+      "jpeg": "mascots/jpeg/machu.jpg"
+    }
+  },
+  {
+    "id": "website",
+    "name": "Angkor",
+    "role": "Website builder",
+    "namedAfter": "Angkor Wat, Cambodia",
+    "colourName": "Temple amber",
+    "palette": {
+      "light": "#FFE7AE",
+      "base": "#F5C25C",
+      "deep": "#D6952C",
+      "limb": "#EDB54E"
+    },
+    "shape": "A tower of stacked tiers with a lotus-bud tip, like the towers of Angkor Wat.",
+    "why": "Angkor builds in layers, one section on top of the next, until the page is done.",
+    "pose": "Carries a building block.",
+    "files": {
+      "svg": "mascots/svg/angkor.svg",
+      "png": "mascots/png/angkor.png",
+      "jpeg": "mascots/jpeg/angkor.jpg"
+    }
+  },
+  {
+    "id": "analytics",
+    "name": "Delphi",
+    "role": "Analytics",
+    "namedAfter": "Delphi, Greece",
+    "colourName": "Laurel olive",
+    "palette": {
+      "light": "#E8F2C9",
+      "base": "#B5CB72",
+      "deep": "#7F9840",
+      "limb": "#A9C065"
+    },
+    "shape": "A fluted column with a scroll capital, like the temple columns at Delphi.",
+    "why": "Delphi reads the signs and tells you what comes next. It writes the reports and the weekly digest.",
+    "pose": "Holds up a chart.",
+    "files": {
+      "svg": "mascots/svg/delphi.svg",
+      "png": "mascots/png/delphi.png",
+      "jpeg": "mascots/jpeg/delphi.jpg"
+    }
+  },
+  {
+    "id": "hr",
+    "name": "Sydney",
+    "role": "People",
+    "namedAfter": "Sydney, Australia",
+    "colourName": "Harbour cyan",
+    "palette": {
+      "light": "#D4F1FB",
+      "base": "#86CDE8",
+      "deep": "#4C9EC2",
+      "limb": "#7AC4E2"
+    },
+    "shape": "Two shell sails, like the roof of the Sydney Opera House.",
+    "why": "Sydney welcomes new people. It hires and runs onboarding.",
+    "pose": "Shows a name badge.",
+    "files": {
+      "svg": "mascots/svg/sydney.svg",
+      "png": "mascots/png/sydney.png",
+      "jpeg": "mascots/jpeg/sydney.jpg"
+    }
+  }
+]
