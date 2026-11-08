@@ -1,0 +1,19 @@
+<!-- @dsCard group="Chrome" height=420 subtitle="⌘K: add a node, jump to one, or run an action" -->
+<style>
+  html, body { margin: 0; background: var(--canvas); }
+  .stage { font-family: var(--font-sans); padding: 20px; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
+  .stage--canvas { background-image: radial-gradient(var(--dot-grid) 1px, transparent 1px); background-size: 20px 20px; }
+  .lbl { font: 500 11px/16px var(--font-sans); color: var(--text-tertiary); margin-bottom: 8px; letter-spacing: .3px; text-transform: uppercase; }
+  .stage{display:block;position:relative;min-height:380px;padding:0}.aui-cmdk-backdrop{position:absolute;padding-top:24px}
+</style>
+<div class="aui stage" id="stage"></div>
+<script>
+(function(){ var U = window.AgentUI; var S = document.getElementById('stage'); 
+  var cp = U.CommandPalette({groups:[
+    {label:'Add node', items:[{label:'Agent', kind:'agent', hint:'Core'},{label:'Classify', kind:'classify', hint:'Core'},{label:'Guardrails', kind:'shield', hint:'Tools'},{label:'If / else', kind:'ifelse', hint:'Logic'}]},
+    {label:'Jump to', items:[{label:'Classifier', kind:'agent', hint:'Agent'},{label:'Recipe', kind:'agent', hint:'Agent'},{label:'Guardrails', kind:'shield'}]},
+    {label:'Actions', items:[{label:'Preview', icon:'play', hint:'⌘⇧P'},{label:'Monitor', icon:'chart'},{label:'Evaluate', icon:'eval'},{label:'Tidy layout', icon:'layout', hint:'⌘⇧L'},{label:'Toggle theme', icon:'sun', hint:'⌘⇧T'}]}
+  ]});
+  cp.open(S);
+ })();
+</script>

@@ -1,0 +1,16 @@
+<!-- @dsCard group="Canvas" height=260 subtitle="A node whose outputs are named branches" -->
+<style>
+  html, body { margin: 0; background: var(--canvas); }
+  .stage { font-family: var(--font-sans); padding: 20px; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
+  .stage--canvas { background-image: radial-gradient(var(--dot-grid) 1px, transparent 1px); background-size: 20px 20px; }
+  .lbl { font: 500 11px/16px var(--font-sans); color: var(--text-tertiary); margin-bottom: 8px; letter-spacing: .3px; text-transform: uppercase; }
+  
+</style>
+<div class="aui stage stage--canvas" id="stage"></div>
+<script>
+(function(){ var U = window.AgentUI; var S = document.getElementById('stage'); 
+  S.appendChild(U.Node({kind:'ifelse', title:'If / else', branches:['Store','Recipes','Normal','Fridge','Else']}));
+  S.appendChild(U.Node({kind:'shield', title:'Guardrails', branches:['Pass','Fail']}));
+  S.appendChild(U.Node({kind:'classify', title:'Intent', meta:'Classify', branches:['Order','Support','Other'], selected:true}));
+ })();
+</script>

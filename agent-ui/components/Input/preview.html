@@ -1,0 +1,19 @@
+<!-- @dsCard group="Forms" height=220 subtitle="Soft input, textarea, outline variant, invalid" -->
+<style>
+  html, body { margin: 0; background: var(--canvas); }
+  .stage { font-family: var(--font-sans); padding: 20px; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
+  .stage--canvas { background-image: radial-gradient(var(--dot-grid) 1px, transparent 1px); background-size: 20px 20px; }
+  .lbl { font: 500 11px/16px var(--font-sans); color: var(--text-tertiary); margin-bottom: 8px; letter-spacing: .3px; text-transform: uppercase; }
+  .col{display:flex;flex-direction:column;gap:12px;width:328px}
+</style>
+<div class="aui stage" id="stage">
+<div class="col">
+  <div class="aui-field"><label class="aui-field__label" for="a">Name</label><input id="a" class="aui-input" value="Classifier"></div>
+  <div class="aui-field"><label class="aui-field__label" for="b">Empty</label><input id="b" class="aui-input" placeholder="Give it a name"></div>
+  <div class="aui-field"><label class="aui-field__label" for="c">Invalid</label><input id="c" class="aui-input" aria-invalid="true" value="my agent!"></div>
+  <div class="aui-field"><label class="aui-field__label" for="d">Outline</label><input id="d" class="aui-input aui-input--outline" value="Alternate style"></div>
+  <textarea class="aui-textarea" aria-label="Instructions">You are tasked with classifying the user's message into one of four intent categories.</textarea>
+</div></div>
+<script>
+(function(){ var U = window.AgentUI; var S = document.getElementById('stage');  })();
+</script>

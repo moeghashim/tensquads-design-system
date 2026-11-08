@@ -1,0 +1,19 @@
+<!-- @dsCard group="Panels" height=620 subtitle="Grouped list of node kinds to drag onto the canvas" -->
+<style>
+  html, body { margin: 0; background: var(--canvas); }
+  .stage { font-family: var(--font-sans); padding: 20px; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
+  .stage--canvas { background-image: radial-gradient(var(--dot-grid) 1px, transparent 1px); background-size: 20px 20px; }
+  .lbl { font: 500 11px/16px var(--font-sans); color: var(--text-tertiary); margin-bottom: 8px; letter-spacing: .3px; text-transform: uppercase; }
+  
+</style>
+<div class="aui stage" id="stage"></div>
+<script>
+(function(){ var U = window.AgentUI; var S = document.getElementById('stage'); 
+  S.appendChild(U.Palette({sections:[
+    {label:'Core', items:[{kind:'agent',label:'Agent'},{kind:'classify',label:'Classify'},{kind:'end',label:'End'},{kind:'note',label:'Note'}]},
+    {label:'Tools', items:[{kind:'file',label:'File search'},{kind:'shield',label:'Guardrails'},{kind:'mcp',label:'MCP'}]},
+    {label:'Logic', items:[{kind:'ifelse',label:'If / else'},{kind:'while',label:'While'},{kind:'approval',label:'User approval'}]},
+    {label:'Data', items:[{kind:'transform',label:'Transform'},{kind:'state',label:'Set state'}]}
+  ]}));
+ })();
+</script>

@@ -1,0 +1,39 @@
+<!-- @dsCard height=288 -->
+<style>
+  html, body { margin: 0; background: var(--canvas); }
+  .cover { position: relative; width: 960px; height: 288px; font-family: var(--font-sans); overflow: hidden; }
+  .cover svg { position: absolute; inset: 0; }
+  .name { position: absolute; left: 48px; bottom: 56px; margin: 0; font-size: 88px; line-height: .92; font-weight: 600; letter-spacing: -0.02em; color: var(--text-emphasis); max-width: 440px; }
+  .tag { position: absolute; left: 50px; bottom: 30px; margin: 0; font-size: 13px; line-height: 18px; font-weight: 500; letter-spacing: -0.01em; color: var(--text-secondary); max-width: 440px; }
+  .solid { fill: var(--primary-solid); } .agent { fill: var(--tint-agent); } .logic { fill: var(--tint-logic); }
+  .end { fill: var(--tint-end); } .note { fill: var(--tint-note); } .tool { fill: var(--tint-tool); } .data { fill: var(--tint-data); }
+  .tile { rx: 16; }
+  .edge { fill: none; stroke: var(--edge); stroke-width: 1.5; }
+  .port { fill: var(--handle); stroke: var(--edge); stroke-width: 1; }
+</style>
+<div class="cover">
+  <!-- Derivation:
+       blocks: primary-solid 144x144 · tint-logic 128x176 · tint-agent 112x112 · tint-note 144x64 · tint-tool 112x64 · tint-data 128x56 · tint-end 112x32 — sides are space-4 multiples, gaps space-4, corners radius-2xl (16)
+       arrangement: three staggered columns right of x=480, like nodes laid out on the canvas, the near-black primary as the anchor block
+       pattern: the connector — 1.5px `edge` smooth-step curves with horizontal tangents joining 8px `handle` ports on the blocks; chosen because a node graph is the one shape this system is for
+       scales: space-4 (16) gaps, radius-2xl tiles, handle-size 8 ports, edge stroke 1.5 as on the canvas -->
+  <svg viewBox="0 0 960 288" width="960" height="288" aria-hidden="true">
+    <rect class="tile solid" x="512" y="40"  width="144" height="144"/>
+    <rect class="tile note"  x="512" y="200" width="144" height="64"/>
+    <rect class="tile agent" x="672" y="40"  width="112" height="112"/>
+    <rect class="tile tool"  x="672" y="168" width="112" height="64"/>
+    <rect class="tile end"   x="672" y="248" width="112" height="32"/>
+    <rect class="tile logic" x="800" y="24"  width="128" height="176"/>
+    <rect class="tile data"  x="800" y="216" width="128" height="56"/>
+    <path class="edge" d="M656,112 C664,112 664,96 672,96"/>
+    <path class="edge" d="M784,96 C792,96 792,72 800,72"/>
+    <path class="edge" d="M784,200 C792,200 792,244 800,244"/>
+    <path class="edge" d="M656,232 C664,232 664,264 672,264"/>
+    <circle class="port" cx="656" cy="112" r="4"/><circle class="port" cx="672" cy="96" r="4"/>
+    <circle class="port" cx="784" cy="96" r="4"/><circle class="port" cx="800" cy="72" r="4"/>
+    <circle class="port" cx="784" cy="200" r="4"/><circle class="port" cx="800" cy="244" r="4"/>
+    <circle class="port" cx="656" cy="232" r="4"/><circle class="port" cx="672" cy="264" r="4"/>
+  </svg>
+  <h1 class="name">Agent-UI</h1>
+  <p class="tag">Quiet chrome, one near-black primary, six tints for node families.</p>
+</div>

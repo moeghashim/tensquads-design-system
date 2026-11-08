@@ -17,7 +17,9 @@
     "files": {
       "svg": "mascots/svg/petra.svg",
       "png": "mascots/png/petra.png",
-      "jpeg": "mascots/jpeg/petra.jpg"
+      "jpeg": "mascots/jpeg/petra.jpg",
+      "cardPng": "mascots/cards/png/petra.png",
+      "cardJpeg": "mascots/cards/jpeg/petra.jpg"
     }
   },
   {
@@ -38,7 +40,9 @@
     "files": {
       "svg": "mascots/svg/pisa.svg",
       "png": "mascots/png/pisa.png",
-      "jpeg": "mascots/jpeg/pisa.jpg"
+      "jpeg": "mascots/jpeg/pisa.jpg",
+      "cardPng": "mascots/cards/png/pisa.png",
+      "cardJpeg": "mascots/cards/jpeg/pisa.jpg"
     }
   },
   {
@@ -59,7 +63,9 @@
     "files": {
       "svg": "mascots/svg/kyoto.svg",
       "png": "mascots/png/kyoto.png",
-      "jpeg": "mascots/jpeg/kyoto.jpg"
+      "jpeg": "mascots/jpeg/kyoto.jpg",
+      "cardPng": "mascots/cards/png/kyoto.png",
+      "cardJpeg": "mascots/cards/jpeg/kyoto.jpg"
     }
   },
   {
@@ -80,7 +86,9 @@
     "files": {
       "svg": "mascots/svg/rio.svg",
       "png": "mascots/png/rio.png",
-      "jpeg": "mascots/jpeg/rio.jpg"
+      "jpeg": "mascots/jpeg/rio.jpg",
+      "cardPng": "mascots/cards/png/rio.png",
+      "cardJpeg": "mascots/cards/jpeg/rio.jpg"
     }
   },
   {
@@ -101,7 +109,9 @@
     "files": {
       "svg": "mascots/svg/zurich.svg",
       "png": "mascots/png/zurich.png",
-      "jpeg": "mascots/jpeg/zurich.jpg"
+      "jpeg": "mascots/jpeg/zurich.jpg",
+      "cardPng": "mascots/cards/png/zurich.png",
+      "cardJpeg": "mascots/cards/jpeg/zurich.jpg"
     }
   },
   {
@@ -122,7 +132,9 @@
     "files": {
       "svg": "mascots/svg/giza.svg",
       "png": "mascots/png/giza.png",
-      "jpeg": "mascots/jpeg/giza.jpg"
+      "jpeg": "mascots/jpeg/giza.jpg",
+      "cardPng": "mascots/cards/png/giza.png",
+      "cardJpeg": "mascots/cards/jpeg/giza.jpg"
     }
   },
   {
@@ -143,7 +155,9 @@
     "files": {
       "svg": "mascots/svg/machu.svg",
       "png": "mascots/png/machu.png",
-      "jpeg": "mascots/jpeg/machu.jpg"
+      "jpeg": "mascots/jpeg/machu.jpg",
+      "cardPng": "mascots/cards/png/machu.png",
+      "cardJpeg": "mascots/cards/jpeg/machu.jpg"
     }
   },
   {
@@ -164,7 +178,9 @@
     "files": {
       "svg": "mascots/svg/angkor.svg",
       "png": "mascots/png/angkor.png",
-      "jpeg": "mascots/jpeg/angkor.jpg"
+      "jpeg": "mascots/jpeg/angkor.jpg",
+      "cardPng": "mascots/cards/png/angkor.png",
+      "cardJpeg": "mascots/cards/jpeg/angkor.jpg"
     }
   },
   {
@@ -185,7 +201,9 @@
     "files": {
       "svg": "mascots/svg/delphi.svg",
       "png": "mascots/png/delphi.png",
-      "jpeg": "mascots/jpeg/delphi.jpg"
+      "jpeg": "mascots/jpeg/delphi.jpg",
+      "cardPng": "mascots/cards/png/delphi.png",
+      "cardJpeg": "mascots/cards/jpeg/delphi.jpg"
     }
   },
   {
@@ -206,7 +224,9 @@
     "files": {
       "svg": "mascots/svg/sydney.svg",
       "png": "mascots/png/sydney.png",
-      "jpeg": "mascots/jpeg/sydney.jpg"
+      "jpeg": "mascots/jpeg/sydney.jpg",
+      "cardPng": "mascots/cards/png/sydney.png",
+      "cardJpeg": "mascots/cards/jpeg/sydney.jpg"
     }
   }
 ]
