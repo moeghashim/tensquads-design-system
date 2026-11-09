@@ -190,57 +190,146 @@ await lp.screenshot({ path: "mascots/lineup.jpg", type: "jpeg", quality: 90 });
 await browser.close();
 
 // ---- The design system page. The same file is index.html here and 10squads.com/design. ----
-const scales = ["gray", "blue", "green", "red", "orange", "yellow", "purple", "pink"];
-const isScale = (t) => scales.some((s) => new RegExp(`^${s}-\\d+$`).test(t.name));
-const scaleRows = scales
-	.map((s) => {
-		const ts = tokens.color.tokens.filter((t) => new RegExp(`^${s}-\\d+$`).test(t.name));
-		return `<div class="scale"><div class="scale-name">${s}</div><div class="chips">${ts.map((t) => `<div class="chip" title="${esc(t.name)} ${esc(light(t.value))}"><span style="background:${esc(light(t.value))}"></span><small>${esc(t.name.split("-").pop())}</small></div>`).join("")}</div></div>`;
-	})
-	.join("");
-const semantic = tokens.color.tokens
-	.filter((t) => !isScale(t))
+// One page with a side menu. Each menu item shows one view. The hash names the view, such as #colors.
+const ICON = {
+	overview: '<path d="M2.5 3.5h4.5a2 2 0 0 1 2 2v8a1.5 1.5 0 0 0-1.5-1.5h-5zM15.5 3.5H11a2 2 0 0 0-2 2v8a1.5 1.5 0 0 1 1.5-1.5h5z"/>',
+	colors: '<path d="M9 2.5a6.5 6.5 0 1 0 0 13c1 0 1.5-.6 1.5-1.4 0-1.1-.9-1.4-.9-2.3 0-.8.6-1.3 1.4-1.3h1.6a2.9 2.9 0 0 0 2.9-2.9C15.5 4.9 12.6 2.5 9 2.5z"/><circle cx="5.8" cy="8" r=".9"/><circle cx="8" cy="5.5" r=".9"/><circle cx="11.2" cy="6.2" r=".9"/>',
+	typography: '<path d="M2.5 6V4.5h7V6M6 4.5v9M10 9V8h5.5v1M12.75 8v5.5"/>',
+	spacing: '<path d="M2.5 9h13M5 6.5 2.5 9 5 11.5M13 6.5l2.5 2.5-2.5 2.5"/>',
+	radius: '<path d="M3 7V5a2 2 0 0 1 2-2h2M11 3h2a2 2 0 0 1 2 2v2M15 11v2a2 2 0 0 1-2 2h-2M7 15H5a2 2 0 0 1-2-2v-2"/>',
+	shadows: '<rect x="2.5" y="2.5" width="9.5" height="9.5" rx="2"/><path d="M12 6h1.5a2 2 0 0 1 2 2v5.5a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V12"/>',
+	easing: '<circle cx="9" cy="9" r="6.5"/><path d="M9 2.5a6.5 6.5 0 0 0 0 13"/>',
+	duration: '<circle cx="9" cy="9.5" r="6"/><path d="M9 6.5v3l2 1.5M7 2h4"/>',
+	components: '<path d="M9 2.5 15 5.8v6.4L9 15.5 3 12.2V5.8zM3 5.8 9 9l6-3.2M9 9v6.5"/>',
+	mascots: '<rect x="2.5" y="2.5" width="13" height="13" rx="3"/><circle cx="7" cy="8" r="1"/><circle cx="11.5" cy="8" r="2"/><path d="M6.5 12c1.5 1 3.5 1 5 0"/>',
+	source: '<path d="M2.5 5.5a1.5 1.5 0 0 1 1.5-1.5h3.2l1.6 1.8H14a1.5 1.5 0 0 1 1.5 1.5v6.2A1.5 1.5 0 0 1 14 15H4a1.5 1.5 0 0 1-1.5-1.5z"/>',
+	search: '<circle cx="8" cy="8" r="4.8"/><path d="m11.6 11.6 3.4 3.4"/>',
+	menu: '<path d="M3 5h12M3 9h12M3 13h12"/>',
+};
+const icon = (k) => `<svg viewBox="0 0 18 18" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${ICON[k]}</svg>`;
+
+// A colour as the menu shows it: six hex digits in capitals, and the opacity when it is not 100%.
+const hexParts = (v) => {
+	let h = String(v).trim();
+	if (!/^#[0-9a-f]{3,8}$/i.test(h)) return { hex: h, alpha: null };
+	h = h.slice(1);
+	if (h.length <= 4) h = [...h].map((c) => c + c).join("");
+	const alpha = h.length === 8 ? Math.round((parseInt(h.slice(6), 16) / 255) * 100) : null;
+	return { hex: `#${h.slice(0, 6).toUpperCase()}`, alpha: alpha === 100 ? null : alpha };
+};
+const colourCell = (v) => {
+	if (v == null) return `<td class="empty">Same as light</td>`;
+	const { hex, alpha } = hexParts(v);
+	return `<td><span class="val"><span class="sw${alpha != null ? " see" : ""}"><i style="background:${esc(v)}"></i></span><span class="mono">${esc(hex)}</span>${alpha != null ? `<span class="pct">${alpha}%</span>` : ""}</span></td>`;
+};
+const nameCell = (t) => `<td class="name"><code>${esc(t.name)}</code>${t.usage ? `<small>${inline(t.usage)}</small>` : ""}</td>`;
+const colourGroups = new Map();
+for (const t of tokens.color.tokens) {
+	const g = t.name.match(/^([a-z]+)-a?\d+$/)?.[1] ?? "Palette";
+	if (!colourGroups.has(g)) colourGroups.set(g, []);
+	colourGroups.get(g).push(t);
+}
+const colourOrder = ["Palette", ...[...colourGroups.keys()].filter((g) => g !== "Palette")];
+const colourView = colourOrder
 	.map(
-		(t) =>
-			`<tr><td class="sws"><span class="sw" style="background:${esc(light(t.value))}"></span>${dark(t.value) ? `<span class="sw" style="background:${esc(dark(t.value))}"></span>` : ""}</td><td><code>${esc(t.name)}</code></td><td class="mono">${esc(light(t.value))}${dark(t.value) ? ` / ${esc(dark(t.value))}` : ""}</td><td>${esc(t.usage ?? "")}</td></tr>`,
+		(g) => `<div class="tgroup" id="colors-${g.toLowerCase()}"><h2>${g}</h2>
+<div class="box"><table><thead><tr><th>Name</th><th>Light</th><th>Dark</th></tr></thead><tbody>${colourGroups
+			.get(g)
+			.map((t) => `<tr data-q="${esc(t.name)}">${nameCell(t)}${colourCell(light(t.value))}${colourCell(dark(t.value))}</tr>`)
+			.join("")}</tbody></table></div></div>`,
 	)
 	.join("");
-const typeRows = tokens.type.groups
+
+const fam = (g) => tokens.type.families[g.family] ?? tokens.type.families.sans;
+const typeView = `<div class="tgroup"><h2>Families</h2><div class="box"><table><thead><tr><th>Name</th><th>Stack</th><th>Sample</th></tr></thead><tbody>${Object.entries(tokens.type.families)
+	.map(([k, v]) => `<tr><td class="name"><code>font-${esc(k)}</code></td><td class="mono small">${esc(v)}</td><td style="font-family:${esc(v)};font-size:20px">Aa Bb 0123</td></tr>`)
+	.join("")}</tbody></table></div></div>${tokens.type.groups
 	.map(
-		(g) =>
-			`<h3>${esc(g.name)}</h3>${g.styles.map((s) => `<div class="type-row"><div class="type-meta"><code>${esc(s.name)}</code><span class="mono">${esc(s.fontSize)} / ${esc(s.lineHeight)} · ${esc(s.fontWeight)}</span><span>${esc(s.usage ?? "")}</span></div><div style="font-family:${esc(tokens.type.families[g.family] ?? tokens.type.families.sans)};font-size:${esc(s.fontSize)};line-height:${esc(s.lineHeight)};font-weight:${esc(s.fontWeight)};letter-spacing:${esc(s.letterSpacing ?? "normal")};${s.textTransform ? `text-transform:${esc(s.textTransform)};` : ""}overflow-wrap:anywhere">Your squad is running</div></div>`).join("")}`,
+		(g) => `<div class="tgroup"><h2>${esc(g.name)}</h2><div class="box"><table class="type"><thead><tr><th>Name</th><th>Sample</th><th>Size / line</th><th>Weight</th></tr></thead><tbody>${g.styles
+			.map(
+				(s) =>
+					`<tr>${nameCell(s)}<td><div style="font-family:${esc(fam(g))};font-size:${esc(s.fontSize)};line-height:${esc(s.lineHeight)};font-weight:${esc(s.fontWeight)};letter-spacing:${esc(s.letterSpacing ?? "normal")};${s.textTransform ? `text-transform:${esc(s.textTransform)};` : ""}overflow-wrap:anywhere">Your squad is running</div></td><td class="mono">${esc(s.fontSize)} / ${esc(s.lineHeight)}</td><td class="mono">${esc(s.fontWeight)}</td></tr>`,
+			)
+			.join("")}</tbody></table></div></div>`,
 	)
-	.join("");
-const table = (list, render) => `<div class="box"><table><tbody>${list.map(render).join("")}</tbody></table></div>`;
-const spacing = table(tokens.spacing.tokens, (t) => `<tr><td><code>${esc(t.name)}</code></td><td class="mono">${esc(t.value)}</td><td><span class="bar" style="width:min(${esc(t.value)},100%)"></span></td><td>${esc(t.usage ?? "")}</td></tr>`);
-const radius = `<div class="radii">${tokens.radius.tokens.map((t) => `<div class="radius"><span style="border-radius:${esc(t.value)}"></span><code>${esc(t.name)}</code><small class="mono">${esc(t.value)}</small></div>`).join("")}</div>`;
-const shadows = `<div class="radii">${tokens.shadow.tokens.map((t) => `<div class="radius"><span style="box-shadow:${esc(light(t.value))};border:0;background:#fff"></span><code>${esc(t.name)}</code><small>${esc(t.usage ?? "")}</small></div>`).join("")}</div>`;
-const motion = table([...tokens.easing.tokens, ...tokens.duration.tokens], (t) => `<tr><td><code>${esc(t.name)}</code></td><td class="mono">${esc(t.value)}</td><td>${esc(t.usage ?? "")}</td></tr>`);
+	.join("")}`;
+
+const tokenTable = (heads, list, cells) =>
+	`<div class="box"><table><thead><tr>${heads.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${list.map((t) => `<tr>${nameCell(t)}${cells(t)}</tr>`).join("")}</tbody></table></div>`;
+const spacingView = tokenTable(["Name", "Value", "Size"], tokens.spacing.tokens, (t) => `<td class="mono">${esc(t.value)}</td><td class="wide"><span class="bar" style="width:min(${esc(t.value)},100%)"></span></td>`);
+const radiusView = tokenTable(["Name", "Value", "Shape"], tokens.radius.tokens, (t) => `<td class="mono">${esc(t.value)}</td><td><span class="shape" style="border-radius:${esc(t.value)}"></span></td>`);
+const shadowView = tokenTable(
+	["Name", "Light", "Dark"],
+	tokens.shadow.tokens,
+	(t) => `<td><span class="lift" style="box-shadow:${esc(light(t.value))}"></span><span class="mono small block">${esc(light(t.value))}</span></td><td><span class="dark-ground"><span class="lift on-dark" style="box-shadow:${esc(dark(t.value) ?? light(t.value))}"></span></span><span class="mono small block">${esc(dark(t.value) ?? "Same as light")}</span></td>`,
+);
+// The easing curve, drawn in a 48 x 48 box. "ease" is cubic-bezier(0.25, 0.1, 0.25, 1).
+const curve = (v) => {
+	const n = v === "ease" ? [0.25, 0.1, 0.25, 1] : (v.match(/-?[\d.]+/g) ?? []).map(Number);
+	if (n.length !== 4) return "";
+	const p = (x, y) => `${(4 + x * 40).toFixed(1)} ${(44 - y * 40).toFixed(1)}`;
+	return `<svg class="curve" viewBox="0 0 48 48" width="48" height="48" aria-hidden="true"><path d="M${p(0, 0)} L${p(1, 1)}" stroke="var(--line)" fill="none"/><path d="M${p(0, 0)} C${p(n[0], n[1])} ${p(n[2], n[3])} ${p(1, 1)}" stroke="var(--accent)" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`;
+};
+const track = (dur, ease) => `<span class="track" style="--d:${esc(dur)};--e:${esc(ease)}"><span></span></span>`;
+const easingView = tokenTable(["Name", "Value", "Curve", "Try it"], tokens.easing.tokens, (t) => `<td class="mono small">${esc(t.value)}</td><td>${curve(t.value)}</td><td class="wide">${track("600ms", t.value)}</td>`);
+const durationView = tokenTable(["Name", "Value", "Try it"], tokens.duration.tokens, (t) => `<td class="mono">${esc(t.value)}</td><td class="wide">${track(t.value, "cubic-bezier(0.65, 0, 0.35, 1)")}</td>`);
+
 const ORDER = ["Actions", "Forms", "Canvas", "Panels", "Chrome", "Data display", "Pages"];
 const rank = (g) => (ORDER.includes(g) ? ORDER.indexOf(g) : ORDER.length);
 const groups = [...new Set(info.map((c) => c.group))].sort((a, b) => rank(a) - rank(b));
-const comps = groups
+const inGroup = (g) => info.filter((c) => c.group === g);
+const compIndex = groups
 	.map(
-		(g) =>
-			`<h3 class="group">${esc(g)}</h3>${info
-				.filter((c) => c.group === g)
-				.map(
-					(c) => `<article class="comp" id="c-${c.name}">
-<div class="comp-head"><div><h4>${c.name}</h4><p class="sub">${esc(c.subtitle)}</p></div><a class="open" href="agent-ui/previews/${c.name}.html">Open</a></div>
-<iframe src="agent-ui/previews/${c.name}.html" title="${c.name} preview" loading="lazy" style="height:${c.height}px"></iframe>
-<div class="guide">${md(c.readme, 5)}</div>
-</article>`,
-				)
-				.join("")}`,
+		(g) => `<div class="tgroup"><h2>${esc(g)}</h2><div class="box"><table class="links"><tbody>${inGroup(g)
+			.map((c) => `<tr><td class="name"><a href="#components/${c.name}">${c.name}</a></td><td class="muted">${esc(c.subtitle)}</td></tr>`)
+			.join("")}</tbody></table></div></div>`,
 	)
 	.join("");
+const compViews = info
+	.map(
+		(c) => `<section class="view" data-view="c-${c.name}" data-title="${c.name}" aria-labelledby="h-${c.name}">
+<p class="crumb"><a href="#components">Components</a> / ${esc(c.group)}</p>
+<header class="vhead"><div><h1 id="h-${c.name}" tabindex="-1">${c.name}</h1><p class="sub">${esc(c.subtitle)}</p></div><a class="btn" href="agent-ui/previews/${c.name}.html">Open preview</a></header>
+<div class="frame"><iframe data-src="agent-ui/previews/${c.name}.html" title="${c.name} preview" style="height:${c.height}px"></iframe></div>
+<div class="prose">${md(c.readme, 2)}</div>
+</section>`,
+	)
+	.join("\n");
+const compNav = groups
+	.map((g) => `<li class="sub-h">${esc(g)}</li>${inGroup(g).map((c) => `<li><a href="#components/${c.name}" data-q="${esc(`${c.name} ${c.group}`)}">${c.name}</a></li>`).join("")}`)
+	.join("");
+
 const cards = MASCOTS.map(
 	(m) =>
 		`<div class="mc">${card(m, `p${m.id}`)}<p class="dl"><a href="${RAW}/mascots/svg/${slug(m)}.svg">SVG</a><a href="${RAW}/mascots/png/${slug(m)}.png">PNG</a><a href="${RAW}/mascots/jpeg/${slug(m)}.jpg">JPEG</a><a href="${RAW}/mascots/cards/png/${slug(m)}.png">Card PNG</a><a href="${RAW}/mascots/cards/jpeg/${slug(m)}.jpg">Card JPEG</a></p></div>`,
 ).join("\n");
-const readme = readFileSync("agent-ui/README.md", "utf8");
+const readme = readFileSync("agent-ui/README.md", "utf8").replace(/^# .*\n/, "");
 const dataDisplay = readFileSync("agent-ui/data-display.md", "utf8").replace(/^# .*\n/, "");
-const tokenCount = all.length + Object.keys(tokens.type.families).length;
+const typeCount = tokens.type.groups.reduce((n, g) => n + g.styles.length, 0);
+
+const VIEWS = [
+	["overview", "Overview"],
+	["colors", "Colors", tokens.color.tokens.length],
+	["typography", "Typography", typeCount],
+	["spacing", "Spacing", tokens.spacing.tokens.length],
+	["radius", "Corner radius", tokens.radius.tokens.length],
+	["shadows", "Shadows", tokens.shadow.tokens.length],
+	["easing", "Easing", tokens.easing.tokens.length],
+	["duration", "Duration", tokens.duration.tokens.length],
+	["components", "Components", info.length],
+	["mascots", "Mascots", MASCOTS.length],
+];
+const navItem = ([id, label, n]) =>
+	`<li><a href="#${id}" data-q="${esc(label)}">${icon(id)}<span>${label}</span>${n != null ? `<span class="n">${n}</span>` : ""}</a>${id === "components" ? `<ul class="subnav">${compNav}</ul>` : ""}</li>`;
+const view = (id, title, note, body) =>
+	`<section class="view" data-view="${id}" data-title="${title}" aria-labelledby="h-${id}">
+<header class="vhead"><div><h1 id="h-${id}" tabindex="-1">${title}</h1>${note ? `<p class="sub">${note}</p>` : ""}</div></header>
+${body}
+</section>`;
+const stats = VIEWS.filter((v) => v[2] != null)
+	.map(([id, label, n]) => `<a class="stat" href="#${id}">${icon(id)}<b>${n}</b><span>${label}</span></a>`)
+	.join("");
+
 const page = `<!doctype html>
 <html lang="en">
 <head>
@@ -249,121 +338,219 @@ const page = `<!doctype html>
 <title>tensquads design system</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400&amp;family=Fredoka:wght@500;600&amp;family=DM+Sans:wght@400;500;600&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400&amp;family=Newsreader:opsz,wght@6..72,400&amp;family=Fredoka:wght@500;600&amp;family=DM+Sans:wght@400;500;600&amp;display=swap">
 <style>
-:root{--bg:#fcfcfc;--surface:#fff;--ink:#0d0d0d;--muted:#5d5d5d;--line:rgba(13,13,13,.1);--accent:#0169cc;--soft:#f3f3f3}
-/* Layout: one 1200px column. Mascots first, then Agent-UI: principles, components, data display, tokens. */
+:root{--bg:#f9f9f9;--side:#fcfcfc;--surface:#fff;--ink:#0d0d0d;--muted:#5d5d5d;--faint:#8f8f8f;--line:rgba(13,13,13,.09);--accent:#0169cc;--soft:#f3f3f3;--hover:rgba(13,13,13,.05);--active:rgba(13,13,13,.09)}
+/* Layout: a 264px side menu and one view at a time on a white sheet. Under 860px the menu is a drawer. */
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.6 Inter,ui-sans-serif,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
-main{max-width:1200px;margin:0 auto;padding:56px 24px 96px;display:flex;flex-direction:column;gap:64px}
-h1{margin:0;font-size:48px;line-height:1.05;font-weight:600;letter-spacing:-.02em;text-wrap:balance}
-h2{margin:0 0 6px;font-size:30px;font-weight:600;letter-spacing:-.015em}
-h3{margin:28px 0 10px;font-size:19px;font-weight:600}
-h4{margin:0;font-size:16px;font-weight:600}
-h5,h6{margin:18px 0 6px;font-size:15px;font-weight:600}
-p{margin:0}
-a{color:var(--accent)} a:focus-visible,iframe:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 14px/1.55 Inter,ui-sans-serif,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+h1:focus{outline:0}
 code,.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:13px}
-.lead{max-width:700px;font-size:18px;color:var(--muted);margin-top:14px}
-.meta{font-size:14px;color:var(--muted);margin-top:14px;display:flex;gap:18px;flex-wrap:wrap}
-nav{display:flex;gap:6px;flex-wrap:wrap;margin-top:22px}
-nav a{font-size:14px;font-weight:500;text-decoration:none;color:var(--ink);padding:6px 14px;border-radius:999px;box-shadow:0 0 0 1px var(--line);background:var(--surface)}
-nav a:hover{background:var(--soft)}
-.section-note{color:var(--muted);max-width:700px;margin-bottom:22px}
-.prose{max-width:760px}.prose p{margin:0 0 12px}.prose ul{margin:0 0 12px;padding-left:20px}.prose h3{margin-top:26px}
-.mascots{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:20px}
+.small{font-size:11.5px}.muted{color:var(--muted)}.block{display:block;margin-top:6px;color:var(--muted)}
+.side{position:fixed;inset:0 auto 0 0;width:264px;background:var(--side);border-right:1px solid var(--line);display:flex;flex-direction:column;z-index:20}
+.brand{display:flex;align-items:center;gap:10px;padding:16px 16px 6px;font-weight:600;font-size:15px;color:var(--ink);text-decoration:none}
+.brand img{width:26px;height:26px}
+.search{position:relative;margin:10px 12px 8px}
+.search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--faint)}
+.search input{width:100%;font:inherit;color:var(--ink);padding:7px 10px 7px 34px;border:1px solid var(--line);border-radius:9px;background:var(--surface)}
+.search input:focus-visible{outline:2px solid var(--accent);outline-offset:0}
+.side nav{overflow-y:auto;flex:1;padding:4px 10px 16px}
+.side ul{list-style:none;margin:0;padding:0}
+.side nav a{display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:8px;color:var(--ink);text-decoration:none;font-size:14.5px}
+.side nav a:hover{background:var(--hover)}
+.side nav a[aria-current]{background:var(--active)}
+.side nav svg{flex:none;color:var(--muted)}
+.side .n{margin-left:auto;font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums}
+.subnav{display:none;margin:2px 0 6px 19px!important;padding-left:10px!important;border-left:1px solid var(--line)}
+.side.open-sub .subnav,.side.searching .subnav{display:block}
+.subnav a{font-size:13.5px!important;padding:4px 10px!important}
+.sub-h{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--faint);padding:10px 10px 2px}
+.side hr{border:0;border-top:1px solid var(--line);margin:10px 4px}
+.side .none{display:none;padding:8px 10px;color:var(--muted)}
+.side.empty .none{display:block}
+[data-hide]{display:none!important}
+.topbar{display:none}
+main{margin-left:264px;padding:28px 32px 80px;min-height:100vh}
+.sheet{max-width:1160px;margin:0 auto;background:var(--surface);border-radius:16px;box-shadow:0 0 0 1px var(--line),0 1px 3px rgba(13,13,13,.04);padding:40px 40px 56px}
+.view[hidden]{display:none}
+.vhead{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:32px}
+.vhead h1{margin:0;font:400 44px/1.1 Newsreader,"Iowan Old Style",Georgia,serif;letter-spacing:-.01em}
+.sub{margin:8px 0 0;color:var(--muted);max-width:680px;font-size:15px}
+.crumb{margin:0 0 10px;font-size:13px;color:var(--muted)}.crumb a{color:var(--muted)}
+.btn{flex:none;font-size:13.5px;font-weight:500;color:var(--ink);text-decoration:none;padding:7px 14px;border-radius:9px;background:var(--soft)}
+.btn:hover{background:#ececec}
+.tgroup{margin-top:40px}.tgroup:first-of-type{margin-top:0}
+.tgroup h2{margin:0 0 12px;font-size:16px;font-weight:500;text-transform:none}
+.box{overflow-x:auto;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:0 -40px}
+table{border-collapse:collapse;width:100%;min-width:640px}
+th{text-align:left;font-weight:400;color:var(--muted);padding:12px 16px;border-bottom:1px solid var(--line)}
+td{padding:14px 16px;border-top:1px solid var(--line);vertical-align:middle}
+tbody tr:first-child td{border-top:0}
+th:first-child,td:first-child{padding-left:40px}th:last-child,td:last-child{padding-right:40px}
+th+th,td+td{border-left:1px solid var(--line)}
+.name{width:30%}.name code{font-size:14px;color:var(--ink)}
+.name small code{font-size:11.5px;color:var(--ink)}
+.name small{display:block;margin-top:3px;font-size:12px;line-height:1.45;color:var(--muted);max-width:340px}
+.val{display:flex;align-items:center;gap:10px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;max-width:280px}
+.val .mono{font-size:13.5px}
+.pct{margin-left:auto;font-size:12px;color:var(--faint)}
+.sw{position:relative;flex:none;width:18px;height:18px;border-radius:5px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(13,13,13,.1)}
+.sw i{position:absolute;inset:0}
+.sw.see{background:repeating-conic-gradient(#d9d9d9 0 25%,#fff 0 50%) 0 0/8px 8px}
+.empty{color:var(--faint)}
+.wide{width:40%}
+.bar{display:block;height:12px;background:var(--accent);border-radius:3px;opacity:.75;min-width:1px}
+.shape{display:block;width:56px;height:56px;background:var(--soft);border:1px solid rgba(13,13,13,.14)}
+.lift{display:block;width:72px;height:44px;border-radius:10px;background:#fff}
+.dark-ground{display:inline-block;padding:10px;border-radius:12px;background:#161616}.lift.on-dark{background:#232323}
+.curve{display:block}
+.track{display:block;position:relative;height:24px;border-radius:12px;background:var(--soft)}
+.track span{position:absolute;left:4px;top:4px;width:16px;height:16px;border-radius:50%;background:var(--accent);transition:left var(--d) var(--e)}
+tr:hover .track span,tr:focus-within .track span{left:calc(100% - 20px)}
+.type td>div{max-width:520px}
+.links td{padding-top:11px;padding-bottom:11px}.links a{font-weight:500;text-decoration:none}.links a:hover{text-decoration:underline}
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:40px}
+.stat{display:flex;flex-direction:column;gap:2px;padding:16px;border-radius:12px;box-shadow:0 0 0 1px var(--line);color:var(--ink);text-decoration:none}
+.stat:hover{background:var(--soft)}.stat svg{color:var(--muted);margin-bottom:8px}.stat b{font-size:24px;font-weight:600}.stat span{color:var(--muted);font-size:13px}
+.prose{max-width:760px;font-size:15px}.prose p{margin:0 0 12px}.prose ul{margin:0 0 12px;padding-left:20px}
+.prose h2{margin:32px 0 10px;font-size:20px;font-weight:600}.prose h3{margin:24px 0 8px;font-size:16px;font-weight:600}.prose h4,.prose h5{margin:18px 0 6px;font-size:15px;font-weight:600}
+.frame{margin:0 -40px 32px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:#f7f7f7}
+.frame iframe{display:block;width:100%;border:0}
+.mascots{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:20px}
 .mc{display:flex;flex-direction:column;gap:10px}
 .mc .mcard{border-radius:14px;box-shadow:0 0 0 1px var(--line),0 1px 3px rgba(13,13,13,.06)}
-.dl{display:flex;gap:6px;flex-wrap:wrap}
-.dl a{font-size:13px;font-weight:500;text-decoration:none;padding:5px 12px;border-radius:999px;box-shadow:0 0 0 1px var(--line);color:var(--ink);background:var(--surface)}
+.dl{display:flex;gap:6px;flex-wrap:wrap;margin:0}
+.dl a{font-size:12.5px;font-weight:500;text-decoration:none;padding:4px 11px;border-radius:999px;box-shadow:0 0 0 1px var(--line);color:var(--ink)}
 .dl a:hover{background:var(--soft)}
 ${CARD_CSS}
-.group{margin-top:36px;padding-top:12px;border-top:1px solid var(--line)}
-.comp{background:var(--surface);border-radius:16px;box-shadow:0 0 0 1px var(--line);margin:0 0 18px;overflow:hidden}
-.comp-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:16px 18px 12px}
-.sub{color:var(--muted);font-size:14px}
-.open{font-size:13px;font-weight:500;white-space:nowrap}
-.comp iframe{display:block;width:100%;border:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:#f7f7f7}
-.guide{padding:6px 18px 16px;max-width:820px;font-size:14px}.guide p{margin:8px 0}
-.scale{display:flex;gap:14px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
-.scale-name{width:64px;font-weight:500;text-transform:capitalize}
-.chips{display:flex;gap:4px;flex-wrap:wrap;flex:1}
-.chip{display:flex;flex-direction:column;align-items:center;gap:2px}
-.chip span{width:40px;height:32px;border-radius:6px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
-.chip small{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums}
-.box{overflow-x:auto;background:var(--surface);border-radius:12px;box-shadow:0 0 0 1px var(--line)}
-table{border-collapse:collapse;width:100%;font-size:14px}
-td{padding:8px 12px;border-top:1px solid var(--line);vertical-align:middle}
-tr:first-child td{border-top:0}
-.sws{white-space:nowrap}
-.sw{display:inline-block;width:18px;height:18px;border-radius:5px;margin-right:4px;vertical-align:middle;box-shadow:inset 0 0 0 1px rgba(0,0,0,.1)}
-.bar{display:inline-block;height:10px;background:var(--accent);border-radius:2px;opacity:.7}
-.type-row{display:grid;grid-template-columns:260px 1fr;gap:20px;padding:14px 0;border-top:1px solid var(--line);align-items:center}
-.type-meta{display:flex;flex-direction:column;font-size:13px;color:var(--muted)}
-.type-meta code{color:var(--ink)}
-h3+.type-row{border-top:0}
-.radii{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
-.radius{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
-.radius span{height:72px;background:var(--soft);border:1px solid var(--line)}
-.radius code{color:var(--ink)}
-@media (max-width:640px){h1{font-size:36px}.type-row{grid-template-columns:1fr}}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+.scrim{display:none}
+@media (max-width:860px){
+.topbar{display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;padding:10px 14px;background:var(--side);border-bottom:1px solid var(--line);font-weight:600}
+.topbar button{display:grid;place-items:center;width:36px;height:36px;border:0;border-radius:9px;background:transparent;color:var(--ink);cursor:pointer}
+.topbar button:hover{background:var(--hover)}
+.side{transform:translateX(-100%);transition:transform .24s cubic-bezier(.19,1,.22,1);box-shadow:0 0 40px rgba(0,0,0,.12)}
+body.menu .side{transform:none}
+body.menu .scrim{display:block;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:15}
+main{margin-left:0;padding:16px 12px 64px}
+.sheet{padding:28px 20px 40px}
+.box,.frame{margin-left:-20px;margin-right:-20px}
+th:first-child,td:first-child{padding-left:20px}th:last-child,td:last-child{padding-right:20px}
+.vhead{flex-direction:column}.vhead h1{font-size:36px}
+}
+@media (prefers-reduced-motion:reduce){.track span,.side{transition:none}}
 </style>
 </head>
 <body>
+<div class="topbar"><button type="button" class="menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="side">${icon("menu")}</button>tensquads design system</div>
+<aside class="side" id="side">
+<a class="brand" href="#overview">tensquads design system</a>
+<div class="search">${icon("search")}<input type="search" placeholder="Search" aria-label="Search the menu" autocomplete="off"></div>
+<nav aria-label="Design system">
+<ul class="main-nav">${VIEWS.map(navItem).join("")}</ul>
+<p class="none">No match.</p>
+<hr>
+<ul><li><a href="${REPO}">${icon("source")}<span>Source files</span></a></li></ul>
+</nav>
+</aside>
+<div class="scrim"></div>
 <main>
-<header>
-<h1>tensquads design system</h1>
-<p class="lead">The reference for how tensquads looks. It holds the ten squad mascots and Agent-UI, the visual language of the app: its principles, ${info.length} components and ${tokenCount} tokens.</p>
-<p class="meta"><span>Source: <a href="${REPO}">moeghashim/tensquads-design-system</a></span><span>Agent-UI tokens version ${esc(tokens.version)}</span></p>
-<nav aria-label="Sections"><a href="#mascots">Mascots</a><a href="#principles">Principles</a><a href="#components">Components</a><a href="#data-display">Data display</a><a href="#colour">Colour</a><a href="#type">Type</a><a href="#spacing">Spacing</a><a href="#radius">Radius</a><a href="#shadow">Shadow</a><a href="#motion">Motion</a></nav>
-</header>
-
-<section id="mascots">
-<h2>Mascots</h2>
-<p class="section-note">One frosted toy for each agent. Each body takes its shape from the place the agent is named after. Every mascot wears one lens over its right eye. The lens is the squad's mark. Each mascot comes as SVG, PNG with a clear background and JPEG with a white background. Each card comes as PNG and JPEG.</p>
-<div class="mascots">
-${cards}
+<div class="sheet">
+${view(
+	"overview",
+	"Overview",
+	`The reference for how tensquads looks. It holds Agent-UI, the visual language of the app, and the ten squad mascots. Agent-UI tokens version ${esc(tokens.version)}.`,
+	`<div class="stats">${stats}</div><div class="prose">${md(readme, 2)}</div>`,
+)}
+${view("colors", "Colors", "Each token has a light and a dark value. Use the palette tokens before the raw scales.", colourView)}
+${view("typography", "Typography", "", typeView)}
+${view("spacing", "Spacing", "", spacingView)}
+${view("radius", "Corner radius", "", radiusView)}
+${view("shadows", "Shadows", "", shadowView)}
+${view("easing", "Easing", "Point at a row to see the curve move.", easingView)}
+${view("duration", "Duration", "Point at a row to see the time.", durationView)}
+${view(
+	"components",
+	"Components",
+	`Each preview is live. It loads <code>agent-ui/tokens.css</code>, <code>agent-ui/components/bundle.css</code> and <code>agent-ui/components/bundle.js</code>. The builders are on <code>window.AgentUI</code>.`,
+	`${compIndex}<div class="tgroup"><h2>Data display</h2><div class="prose">${md(dataDisplay, 3)}</div></div>`,
+)}
+${compViews}
+${view(
+	"mascots",
+	"Mascots",
+	"One frosted toy for each agent. Each body takes its shape from the place the agent is named after. Every mascot wears one lens over its right eye. The lens is the squad's mark. Each mascot comes as SVG, PNG with a clear background and JPEG with a white background.",
+	`<div class="mascots">${cards}</div>`,
+)}
 </div>
-</section>
-
-<section id="principles">
-<h2>Agent-UI principles</h2>
-<div class="prose">${md(readme, 3)}</div>
-</section>
-
-<section id="components">
-<h2>Components</h2>
-<p class="section-note">Each preview is live. It loads <code>agent-ui/tokens.css</code>, <code>agent-ui/components/bundle.css</code> and <code>agent-ui/components/bundle.js</code>. The builders are on <code>window.AgentUI</code>. Their types are in <code>agent-ui/components/index.d.ts</code>.</p>
-${comps}
-</section>
-
-<section id="data-display">
-<h2>Data display</h2>
-<div class="prose">${md(dataDisplay, 3)}</div>
-</section>
-
-<section id="colour">
-<h2>Colour scales</h2>
-<p class="section-note">Light theme values. The dark values are in the token files.</p>
-${scaleRows}
-<h3>Semantic colours</h3>
-<p class="section-note">Use these before the raw scales. Each shows the light value, then the dark value.</p>
-<div class="box"><table><tbody>${semantic}</tbody></table></div>
-</section>
-
-<section id="type">
-<h2>Type</h2>
-<p class="section-note">Sans: <code>${esc(tokens.type.families.sans)}</code>. Mono: <code>${esc(tokens.type.families.mono)}</code>.</p>
-${typeRows}
-</section>
-
-<section id="spacing"><h2>Spacing and sizing</h2>${spacing}</section>
-<section id="radius"><h2>Radius</h2>${radius}</section>
-<section id="shadow"><h2>Shadow</h2>${shadows}</section>
-<section id="motion"><h2>Motion</h2>${motion}</section>
 </main>
+<script>
+(function () {
+	var views = [].slice.call(document.querySelectorAll("[data-view]"));
+	var links = [].slice.call(document.querySelectorAll(".side nav a[href^='#']"));
+	var side = document.getElementById("side");
+	var menuBtn = document.querySelector(".menu-btn");
+	// Older links to this page used these names.
+	var OLD = { mascot: "mascots", principles: "overview", colour: "colors", type: "typography", radius: "radius", shadow: "shadows", motion: "easing", "data-display": "components" };
+	function setMenu(open) {
+		document.body.classList.toggle("menu", open);
+		menuBtn.setAttribute("aria-expanded", String(open));
+	}
+	function show(moveFocus) {
+		var hash = decodeURIComponent(location.hash.slice(1)) || "overview";
+		var parts = hash.split("/");
+		var id = OLD[parts[0]] || parts[0];
+		if (id === "components" && parts[1]) id = "c-" + parts[1];
+		var current = views.filter(function (v) { return v.dataset.view === id; })[0];
+		if (!current) { id = "overview"; current = views[0]; }
+		views.forEach(function (v) { v.hidden = v !== current; });
+		current.querySelectorAll("iframe[data-src]").forEach(function (f) { f.src = f.dataset.src; f.removeAttribute("data-src"); });
+		var here = id.indexOf("c-") === 0 ? "#components/" + id.slice(2) : "#" + id;
+		links.forEach(function (a) {
+			var on = a.getAttribute("href") === here || (here.indexOf("#components/") === 0 && a.getAttribute("href") === "#components");
+			if (on) a.setAttribute("aria-current", a.getAttribute("href") === here ? "page" : "true");
+			else a.removeAttribute("aria-current");
+		});
+		side.classList.toggle("open-sub", id === "components" || id.indexOf("c-") === 0);
+		document.title = current.dataset.title + " · tensquads design system";
+		setMenu(false);
+		if (moveFocus) { window.scrollTo(0, 0); current.querySelector("h1").focus({ preventScroll: true }); }
+	}
+	window.addEventListener("hashchange", function () { show(true); });
+	show(false);
+	menuBtn.addEventListener("click", function () { setMenu(!document.body.classList.contains("menu")); });
+	document.querySelector(".scrim").addEventListener("click", function () { setMenu(false); });
+	document.addEventListener("keydown", function (e) { if (e.key === "Escape" && document.body.classList.contains("menu")) { setMenu(false); menuBtn.focus(); } });
+	// The search box filters the menu. Enter opens the first match.
+	var input = side.querySelector("input");
+	input.addEventListener("input", function () {
+		var q = input.value.trim().toLowerCase();
+		side.classList.toggle("searching", q !== "");
+		var shown = 0;
+		side.querySelectorAll(".main-nav > li").forEach(function (li) {
+			var top = li.querySelector("a");
+			var topHit = top.dataset.q.toLowerCase().indexOf(q) !== -1;
+			var subHits = 0;
+			li.querySelectorAll(".subnav li").forEach(function (s) {
+				var a = s.querySelector("a");
+				var hit = !q || (a ? a.dataset.q.toLowerCase().indexOf(q) !== -1 : false);
+				if (a) { s.toggleAttribute("data-hide", !hit); if (hit && q) subHits++; }
+				else s.toggleAttribute("data-hide", !!q);
+			});
+			var keep = !q || topHit || subHits > 0;
+			li.toggleAttribute("data-hide", !keep);
+			if (keep) shown++;
+		});
+		side.classList.toggle("empty", shown === 0);
+	});
+	input.addEventListener("keydown", function (e) {
+		if (e.key !== "Enter") return;
+		var first = [].slice.call(side.querySelectorAll(".main-nav a")).filter(function (a) { return a.offsetParent !== null && (a.closest(".subnav") || !side.classList.contains("searching") || a.dataset.q.toLowerCase().indexOf(input.value.trim().toLowerCase()) !== -1); })[0];
+		if (first) location.hash = first.getAttribute("href");
+	});
+})();
+</script>
 </body>
 </html>
 `;
