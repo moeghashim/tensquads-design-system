@@ -181,9 +181,9 @@ for (const m of MASCOTS) {
 	await el.screenshot({ path: `mascots/cards/png/${slug(m)}.png` });
 	await el.screenshot({ path: `mascots/cards/jpeg/${slug(m)}.jpg`, type: "jpeg", quality: 92 });
 }
-const lp = await browser.newPage({ viewport: { width: 1780, height: 1040 }, deviceScaleFactor: 2 });
+const lp = await browser.newPage({ viewport: { width: 2460, height: 1040 }, deviceScaleFactor: 2 });
 await lp.setContent(
-	`<body style="margin:0;background:#fff;display:grid;grid-template-columns:repeat(6,300px);gap:24px 40px;padding:48px 60px;font:600 22px Inter,system-ui,sans-serif;color:#0d0d0d">${MASCOTS.map((m) => `<div style="text-align:center"><div style="width:300px;height:370px">${svg(m, `L${m.id}`)}</div>${m.name}<div style="font-weight:400;font-size:16px;color:#5d5d5d;margin-top:4px">${m.role}</div></div>`).join("")}</body>`,
+	`<body style="margin:0;background:#fff;display:grid;grid-template-columns:repeat(7,300px);gap:24px 40px;padding:48px 60px;font:600 22px Inter,system-ui,sans-serif;color:#0d0d0d">${MASCOTS.map((m) => `<div style="text-align:center"><div style="width:300px;height:370px">${svg(m, `L${m.id}`)}</div>${m.name}<div style="font-weight:400;font-size:16px;color:#5d5d5d;margin-top:4px">${m.role}</div></div>`).join("")}</body>`,
 );
 await lp.screenshot({ path: "mascots/lineup.png" });
 await lp.screenshot({ path: "mascots/lineup.jpg", type: "jpeg", quality: 90 });
@@ -460,7 +460,7 @@ th:first-child,td:first-child{padding-left:20px}th:last-child,td:last-child{padd
 ${view(
 	"overview",
 	"Overview",
-	`The reference for how tensquads looks. It holds Agent-UI, the visual language of the app, and the eleven squad mascots. Agent-UI tokens version ${esc(tokens.version)}.`,
+	`The reference for how tensquads looks. It holds Agent-UI, the visual language of the app, and the thirteen squad mascots. Agent-UI tokens version ${esc(tokens.version)}.`,
 	`<div class="stats">${stats}</div><div class="prose">${md(readme, 2)}</div>`,
 )}
 ${view("colors", "Colors", "Each token has a light and a dark value. Use the palette tokens before the raw scales.", colourView)}

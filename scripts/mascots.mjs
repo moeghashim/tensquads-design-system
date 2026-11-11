@@ -1,4 +1,4 @@
-// Eleven squad mascots. Frosted resin toys. Each body comes from the place the agent is named after.
+// Thirteen squad mascots. Frosted resin toys. Each body comes from the place the agent is named after.
 export const MASCOTS = [
   { id: "master", name: "Petra", role: "Master", place: "Petra, Jordan", colour: "Rose sandstone",
     p: { light:"#FBD8D0", base:"#EBA196", deep:"#C9746A", limb:"#E3958A" },
@@ -8,7 +8,7 @@ export const MASCOTS = [
   { id: "orders", name: "Pisa", role: "Orders", place: "Pisa, Italy", colour: "Marble blue",
     p: { light:"#DCE8FF", base:"#97B7F5", deep:"#5F86D6", limb:"#8AACEE" },
     shape: "A round tower with arcade bands and a bell top. It leans a little, like the tower at Pisa.",
-    why: "Pisa carries orders out of the door. The lean makes it look busy and on the move.",
+    why: "Pisa takes orders from every channel, carries them out of the door and handles returns. The lean makes it look busy and on the move.",
     pose: "Carries a parcel." },
   { id: "support", name: "Kyoto", role: "Support", place: "Kyoto, Japan", colour: "Lantern vermilion",
     p: { light:"#FFD3C7", base:"#F08B70", deep:"#CC5A40", limb:"#E98065" },
@@ -55,6 +55,16 @@ export const MASCOTS = [
     shape: "An observatory dome with an open shutter slit and a red time ball on top, like the Royal Observatory at Greenwich.",
     why: "Every map starts at the meridian in Greenwich. Greenwich keeps the business on Google Maps and the other maps, correct and easy to find.",
     pose: "Holds up a folded map." },
+  { id: "catalog", name: "Alexandria", role: "Catalog", place: "Alexandria, Egypt", colour: "Lapis indigo",
+    p: { light:"#D9DBFF", base:"#8E95F2", deep:"#4F56C4", limb:"#8288EC" },
+    shape: "A tall bookcase with an arched top and shelves of coloured book spines, like the great library of Alexandria.",
+    why: "The library at Alexandria kept a catalog of the known world. Alexandria keeps every product, title, photo, variant and price correct.",
+    pose: "Holds up a price tag." },
+  { id: "channels", name: "Venice", role: "Channels", place: "Venice, Italy", colour: "Murano magenta",
+    p: { light:"#FFD6F0", base:"#F28CCB", deep:"#C9529C", limb:"#EC80C2" },
+    shape: "A humped bridge with a centre arch, a small portico on top and rows of shop windows, like the Rialto Bridge in Venice.",
+    why: "Venice is a city of channels, and the Rialto was a market bridge. Venice lists the products on every sales channel and keeps stock and prices in step.",
+    pose: "Holds a gondola oar." },
 ];
 
 const INK = "#1B1B1F";
@@ -198,6 +208,37 @@ ${face(k, 126, 174, 214, 26)}${smile(150, 248)}
 ${limb(c, "M212 226 Q244 214 250 188")}
 <g transform="rotate(-8 256 164)"><path d="M224 140 L246 132 L266 140 L288 132 L288 184 L266 192 L246 184 L224 192 Z" fill="#F4EFE4" stroke="#D3C9B5" stroke-width="2" stroke-linejoin="round"/><path d="M246 132 L246 184 L266 192 L266 140 Z" fill="#E4DAC6"/><path d="M232 176 Q248 154 258 166 T282 148" fill="none" stroke="#5F86D6" stroke-width="3" stroke-dasharray="4 4" stroke-linecap="round"/><circle cx="282" cy="146" r="6" fill="#E5574A"/></g>
 ${hand(c, 250, 188)}`,
+
+  catalog: (k, c) => `${legs(c, 124, 176, 300)}
+${limb(c, "M96 222 Q70 238 72 270")}${hand(c, 72, 272)}
+<circle cx="150" cy="58" r="9" fill="${c.deep}" opacity=".85"/>
+<path d="M96 300 L96 118 A54 54 0 0 1 204 118 L204 300 Q204 312 192 312 L108 312 Q96 312 96 300 Z" fill="url(#${k}b)"/>
+<rect x="108" y="190" width="84" height="112" rx="8" fill="${c.deep}" opacity=".35"/>
+<rect x="112" y="204" width="12" height="38" rx="2" fill="#F4EFE4"/><rect x="126" y="198" width="10" height="44" rx="2" fill="#E5574A"/><rect x="138" y="206" width="14" height="36" rx="2" fill="#D9AE45"/><rect x="154" y="200" width="10" height="42" rx="2" fill="#5EA885"/><rect x="166" y="204" width="12" height="38" rx="2" fill="#F4EFE4"/><rect x="180" y="210" width="10" height="34" rx="2" fill="#5F86D6" transform="rotate(-12 185 244)"/>
+<rect x="104" y="242" width="92" height="6" rx="3" fill="${c.deep}" opacity=".85"/>
+<rect x="112" y="256" width="10" height="40" rx="2" fill="#5F86D6"/><rect x="124" y="262" width="14" height="34" rx="2" fill="#F4EFE4"/><rect x="140" y="254" width="10" height="42" rx="2" fill="#D9AE45"/><rect x="152" y="260" width="12" height="36" rx="2" fill="#E5574A"/><rect x="166" y="256" width="10" height="40" rx="2" fill="#F4EFE4"/><rect x="178" y="262" width="12" height="34" rx="2" fill="#5EA885"/>
+<rect x="104" y="296" width="92" height="6" rx="3" fill="${c.deep}" opacity=".85"/>
+${sheen(k, "M106 118 A44 44 0 0 1 140 76 Q118 100 112 184 Z")}
+${face(k, 128, 172, 146, 24)}${smile(150, 176)}
+${limb(c, "M204 214 Q236 206 244 180")}
+<path d="M244 180 Q252 196 258 210" fill="none" stroke="#D3C9B5" stroke-width="2"/>
+<g transform="rotate(14 258 232)"><path d="M248 216 L258 206 L268 216 L268 256 L248 256 Z" fill="#F4EFE4" stroke="#D3C9B5" stroke-width="2" stroke-linejoin="round"/><circle cx="258" cy="216" r="3" fill="#D3C9B5"/><path d="M253 232 L263 232 M253 242 L261 242" stroke="#E5574A" stroke-width="3" stroke-linecap="round"/></g>
+${hand(c, 244, 180)}`,
+
+  channels: (k, c) => `${legs(c, 94, 206, 304)}
+${limb(c, "M74 236 Q50 252 54 282")}${hand(c, 54, 284)}
+<path d="M214 112 L276 300" stroke="#B0894A" stroke-width="7" stroke-linecap="round"/>
+<ellipse cx="279" cy="310" rx="9" ry="22" fill="#C99A5B" transform="rotate(-18 279 310)"/>
+<path d="M122 120 L150 98 L178 120 Z" fill="${c.deep}" opacity=".85"/>
+<rect x="128" y="118" width="44" height="44" rx="4" fill="url(#${k}b)"/>
+<path d="M140 162 L140 138 A10 10 0 0 1 160 138 L160 162 Z" fill="${c.deep}" opacity=".55"/>
+<path d="M74 304 L74 196 Q150 116 226 196 L226 304 Q226 312 218 312 L188 312 L188 300 A38 30 0 0 0 112 300 L112 312 L82 312 Q74 312 74 304 Z" fill="url(#${k}b)"/>
+<path d="M86 208 L86 200 A5 5 0 0 1 96 200 L96 208 Z M100 208 L100 200 A5 5 0 0 1 110 200 L110 208 Z M114 208 L114 200 A5 5 0 0 1 124 200 L124 208 Z M176 208 L176 200 A5 5 0 0 1 186 200 L186 208 Z M190 208 L190 200 A5 5 0 0 1 200 200 L200 208 Z M204 208 L204 200 A5 5 0 0 1 214 200 L214 208 Z" fill="${c.deep}" opacity=".55"/>
+${rim("M82 214 Q150 172 218 214")}
+<path d="M118 304 q8 -6 16 0 t16 0 t16 0 t16 0" fill="none" stroke="#4C9EC2" stroke-width="4" stroke-linecap="round" opacity=".8"/><path d="M128 296 q6 -4 12 0 t12 0 t12 0" fill="none" stroke="#86CDE8" stroke-width="3" stroke-linecap="round" opacity=".8"/>
+${sheen(k, "M84 200 Q110 170 140 160 Q110 182 96 246 Z")}
+${face(k, 126, 174, 232, 24)}${smile(150, 260)}
+${limb(c, "M226 230 Q244 224 246 210")}${hand(c, 246, 210)}`,
 };
 
 export function svg(m, k = m.id, standalone = false) {

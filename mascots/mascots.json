@@ -35,7 +35,7 @@
       "limb": "#8AACEE"
     },
     "shape": "A round tower with arcade bands and a bell top. It leans a little, like the tower at Pisa.",
-    "why": "Pisa carries orders out of the door. The lean makes it look busy and on the move.",
+    "why": "Pisa takes orders from every channel, carries them out of the door and handles returns. The lean makes it look busy and on the move.",
     "pose": "Carries a parcel.",
     "files": {
       "svg": "mascots/svg/pisa.svg",
@@ -250,6 +250,52 @@
       "jpeg": "mascots/jpeg/greenwich.jpg",
       "cardPng": "mascots/cards/png/greenwich.png",
       "cardJpeg": "mascots/cards/jpeg/greenwich.jpg"
+    }
+  },
+  {
+    "id": "catalog",
+    "name": "Alexandria",
+    "role": "Catalog",
+    "namedAfter": "Alexandria, Egypt",
+    "colourName": "Lapis indigo",
+    "palette": {
+      "light": "#D9DBFF",
+      "base": "#8E95F2",
+      "deep": "#4F56C4",
+      "limb": "#8288EC"
+    },
+    "shape": "A tall bookcase with an arched top and shelves of coloured book spines, like the great library of Alexandria.",
+    "why": "The library at Alexandria kept a catalog of the known world. Alexandria keeps every product, title, photo, variant and price correct.",
+    "pose": "Holds up a price tag.",
+    "files": {
+      "svg": "mascots/svg/alexandria.svg",
+      "png": "mascots/png/alexandria.png",
+      "jpeg": "mascots/jpeg/alexandria.jpg",
+      "cardPng": "mascots/cards/png/alexandria.png",
+      "cardJpeg": "mascots/cards/jpeg/alexandria.jpg"
+    }
+  },
+  {
+    "id": "channels",
+    "name": "Venice",
+    "role": "Channels",
+    "namedAfter": "Venice, Italy",
+    "colourName": "Murano magenta",
+    "palette": {
+      "light": "#FFD6F0",
+      "base": "#F28CCB",
+      "deep": "#C9529C",
+      "limb": "#EC80C2"
+    },
+    "shape": "A humped bridge with a centre arch, a small portico on top and rows of shop windows, like the Rialto Bridge in Venice.",
+    "why": "Venice is a city of channels, and the Rialto was a market bridge. Venice lists the products on every sales channel and keeps stock and prices in step.",
+    "pose": "Holds a gondola oar.",
+    "files": {
+      "svg": "mascots/svg/venice.svg",
+      "png": "mascots/png/venice.png",
+      "jpeg": "mascots/jpeg/venice.jpg",
+      "cardPng": "mascots/cards/png/venice.png",
+      "cardJpeg": "mascots/cards/jpeg/venice.jpg"
     }
   }
 ]
