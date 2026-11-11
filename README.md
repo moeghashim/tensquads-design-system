@@ -1,6 +1,6 @@
 # tensquads design system
 
-This repository is the reference for how tensquads looks. It is shown as a page at <https://10squads.com/design>. The same page is `index.html` here.
+This repository is the reference for how tensquads looks, and the single source of the design. It holds the product screens, the approved page designs, Agent-UI and the squad mascots. It is served at <https://10squads.com/design> from this repository. The page is `index.html` here.
 
 ![The thirteen squad mascots](mascots/lineup.png)
 
@@ -21,7 +21,13 @@ This repository is the reference for how tensquads looks. It is shown as a page 
 | `agent-ui/tokens.css` | The same tokens as CSS custom properties. Built from `tokens.json`. |
 | `agent-ui/components/` | The components: `bundle.css` (the `.aui-*` classes), `bundle.js` (the builders on `window.AgentUI`), `index.d.ts` (their types), and one folder per component with its guide (`README.md`) and its example (`preview.html`). |
 | `agent-ui/previews/` | Each component example as a page that runs on its own. Built from `agent-ui/components/`. |
-| `scripts/` | The mascot drawings (`mascots.mjs`) and the script that builds every generated file (`build.mjs`). |
+| `mascots/states/` | Each mascot in each Agent loop state, as SVG at 160 px. Built from `scripts/squadmates/`. |
+| `screens/` | The product screens from the design canvas, file for file: one `.dc.html` per screen, `canvas.json` and `MANIFEST.json`. `support.js` is a small runtime that draws them in a browser. Never edit these files by hand. Pull the canvas again. |
+| `screens/inventory/` | The texts, styles, handlers and loops of each screen. Built by `scripts/design-inventory.mjs`. |
+| `pages/` | The approved designs for pages outside the app: the two homepages and the squadmates sidebar, with screenshots. |
+| `scripts/` | The mascot drawings (`mascots.mjs`), the script that builds every generated file (`build.mjs`), `design-check.mjs` and `design-inventory.mjs`. |
+| `scripts/squadmates/` | The app's avatar code: the mascots with the Agent loop states. The app package `@tensquads/squadmates` uses the same code. |
+| `worker/`, `wrangler.jsonc` | The Cloudflare Worker that serves this repository at 10squads.com/design. |
 
 ## Agent-UI
 
@@ -67,3 +73,17 @@ npm install
 npx playwright install chromium
 npm run build
 ```
+
+## Checks
+
+- `node scripts/design-check.mjs` proves that `screens/` matches the canvas version in `screens/MANIFEST.json`. It exits 1 on any difference.
+- `node scripts/design-inventory.mjs` writes `screens/inventory/`. `node scripts/design-inventory.mjs --html <file>` lists a built page in the same form, so a build can be compared with its design.
+
+## Deploy
+
+10squads.com/design is the Worker `tensquads-design-system`. Its routes are `10squads.com/design` and `10squads.com/design/*`. They are more specific than the website route `10squads.com/*`, so these paths come here and every other path goes to the website.
+
+1. Run `npm install`, then `npm run build`.
+2. Run `CLOUDFLARE_API_TOKEN=<token> npx wrangler deploy`. The token needs Workers Scripts and Workers Routes on the 10squads.com zone.
+
+`.assetsignore` keeps the scripts, the Worker and the package files off the site.

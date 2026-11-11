@@ -3,15 +3,15 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { MASCOTS, svg } from "./mascots.mjs";
+import { AGENT_LOOP_STATES, SQUADMATE_CSS, SQUADMATES, squadmateMarkup } from "./squadmates/index.ts";
 
 const require = createRequire(`${process.cwd()}/package.json`);
 const { chromium } = require("playwright");
-const RAW = "https://raw.githubusercontent.com/moeghashim/tensquads-design-system/main";
 const REPO = "https://github.com/moeghashim/tensquads-design-system";
 const slug = (m) => m.name.toLowerCase();
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-for (const d of ["mascots/svg", "mascots/png", "mascots/jpeg", "mascots/cards", "agent-ui/previews"]) rmSync(d, { recursive: true, force: true });
-for (const d of ["mascots/svg", "mascots/png", "mascots/jpeg", "mascots/cards/png", "mascots/cards/jpeg", "agent-ui/previews"]) mkdirSync(d, { recursive: true });
+for (const d of ["mascots/svg", "mascots/png", "mascots/jpeg", "mascots/cards", "mascots/states", "agent-ui/previews"]) rmSync(d, { recursive: true, force: true });
+for (const d of ["mascots/svg", "mascots/png", "mascots/jpeg", "mascots/cards/png", "mascots/cards/jpeg", "mascots/states", "agent-ui/previews"]) mkdirSync(d, { recursive: true });
 const tokens = JSON.parse(readFileSync("agent-ui/tokens.json", "utf8"));
 
 // ---- tokens.css: every token as a custom property. Light in :root, dark under data-theme="dark". ----
@@ -165,6 +165,10 @@ writeFileSync(
 	)}\n`,
 );
 for (const m of MASCOTS) writeFileSync(`mascots/svg/${slug(m)}.svg`, `<?xml version="1.0" encoding="UTF-8"?>\n${svg(m, m.id, true)}\n`);
+// The mascots in each Agent loop state, as the app draws them. The drawing code is scripts/squadmates/, the same code as the app.
+const STATES = [["idle", "Idle", "No task. Blinks slowly."], ...AGENT_LOOP_STATES.map((s) => [s.id, s.label, s.hint])];
+const mateName = (id) => SQUADMATES.find((x) => x.id === id).name.toLowerCase();
+for (const m of SQUADMATES) for (const [st] of STATES) writeFileSync(`mascots/states/${mateName(m.id)}-${st}.svg`, `<?xml version="1.0" encoding="UTF-8"?>\n${squadmateMarkup(m.id, st, 160)}\n`);
 const browser = await chromium.launch();
 const p = await browser.newPage({ viewport: { width: 600, height: 740 }, deviceScaleFactor: 2 });
 for (const m of MASCOTS) {
@@ -202,6 +206,9 @@ const ICON = {
 	duration: '<circle cx="9" cy="9.5" r="6"/><path d="M9 6.5v3l2 1.5M7 2h4"/>',
 	components: '<path d="M9 2.5 15 5.8v6.4L9 15.5 3 12.2V5.8zM3 5.8 9 9l6-3.2M9 9v6.5"/>',
 	mascots: '<rect x="2.5" y="2.5" width="13" height="13" rx="3"/><circle cx="7" cy="8" r="1"/><circle cx="11.5" cy="8" r="2"/><path d="M6.5 12c1.5 1 3.5 1 5 0"/>',
+	screens: '<rect x="2.5" y="3.5" width="13" height="9.5" rx="1.5"/><path d="M6.5 15.5h5M9 13v2.5"/>',
+	pages: '<path d="M4.5 2.5h6l3 3v10h-9z"/><path d="M10.5 2.5v3h3M6.5 9h5M6.5 12h5"/>',
+	states: '<circle cx="6" cy="6" r="2.5"/><circle cx="12" cy="6" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="12" cy="12" r="2.5"/>',
 	source: '<path d="M2.5 5.5a1.5 1.5 0 0 1 1.5-1.5h3.2l1.6 1.8H14a1.5 1.5 0 0 1 1.5 1.5v6.2A1.5 1.5 0 0 1 14 15H4a1.5 1.5 0 0 1-1.5-1.5z"/>',
 	search: '<circle cx="8" cy="8" r="4.8"/><path d="m11.6 11.6 3.4 3.4"/>',
 	menu: '<path d="M3 5h12M3 9h12M3 13h12"/>',
@@ -301,11 +308,38 @@ const compNav = groups
 
 const cards = MASCOTS.map(
 	(m) =>
-		`<div class="mc">${card(m, `p${m.id}`)}<p class="dl"><a href="${RAW}/mascots/svg/${slug(m)}.svg">SVG</a><a href="${RAW}/mascots/png/${slug(m)}.png">PNG</a><a href="${RAW}/mascots/jpeg/${slug(m)}.jpg">JPEG</a><a href="${RAW}/mascots/cards/png/${slug(m)}.png">Card PNG</a><a href="${RAW}/mascots/cards/jpeg/${slug(m)}.jpg">Card JPEG</a></p></div>`,
+		`<div class="mc">${card(m, `p${m.id}`)}<p class="dl"><a href="mascots/svg/${slug(m)}.svg">SVG</a><a href="mascots/png/${slug(m)}.png">PNG</a><a href="mascots/jpeg/${slug(m)}.jpg">JPEG</a><a href="mascots/cards/png/${slug(m)}.png">Card PNG</a><a href="mascots/cards/jpeg/${slug(m)}.jpg">Card JPEG</a></p></div>`,
 ).join("\n");
 const readme = readFileSync("agent-ui/README.md", "utf8").replace(/^# .*\n/, "");
 const dataDisplay = readFileSync("agent-ui/data-display.md", "utf8").replace(/^# .*\n/, "");
 const typeCount = tokens.type.groups.reduce((n, g) => n + g.styles.length, 0);
+
+// ---- The product screens from the canvas, the approved page designs and the mascot states. ----
+const canvas = JSON.parse(readFileSync("screens/canvas.json", "utf8"));
+const manifest = JSON.parse(readFileSync("screens/MANIFEST.json", "utf8"));
+const SCREENS = canvas.order.map((file) => ({ id: file.replace(".dc.html", ""), file, ...canvas.boards[file] }));
+const PAGES = [
+	{ id: "home-v2", title: "Homepage: the approval moment", note: "The current homepage design. A squad does the work, and the owner says yes to what matters.", file: "pages/home-v2/home.html", w: 1440, h: 4852, shots: [["home-1440.png", "1440 px"], ["home-390.png", "390 px"], ["home-dashboard.jpg", "Dashboard image"]] },
+	{ id: "home", title: "Homepage: first design", note: "The first approved homepage. It has the build next to the design at both widths.", file: "pages/home/home.html", w: 1440, h: 5440, shots: [["home-1440.png", "1440 px"], ["home-390.png", "390 px"], ["build-vs-design-1440.png", "Build and design, 1440 px"], ["build-vs-design-390.png", "Build and design, 390 px"]] },
+	{ id: "squadmates-sidebar", title: "Squadmates in the sidebar", note: "How the squad shows in the app sidebar.", file: "pages/squadmates-sidebar/sidebar.html", w: 1180, h: 760, shots: [["sidebar.png", "1180 px"]] },
+];
+// A design drawn at its own width, scaled down to fit the sheet. The script sets --s.
+const scaled = (src, title, w, h) => `<div class="scaled" style="--w:${w};--h:${h}"><iframe data-src="${src}" title="${esc(title)}" width="${w}" height="${h}" loading="lazy"></iframe></div>`;
+const subView = (kind, label, id, title, note, open, body) => `<section class="view" data-view="${kind}-${id}" data-title="${esc(title)}" aria-labelledby="h-${kind}-${id}">
+<p class="crumb"><a href="#${kind}">${label}</a></p>
+<header class="vhead"><div><h1 id="h-${kind}-${id}" tabindex="-1">${esc(title)}</h1>${note ? `<p class="sub">${note}</p>` : ""}</div><a class="btn" href="${open}">Open full size</a></header>
+${body}
+</section>`;
+const screenIndex = `<div class="box"><table class="links"><thead><tr><th>Screen</th><th>File</th><th>Size</th></tr></thead><tbody>${SCREENS.map((x) => `<tr><td class="name"><a href="#screens/${x.id}">${esc(x.title)}</a></td><td class="mono small">${x.file}</td><td class="mono small">${x.w} × ${x.h}</td></tr>`).join("")}</tbody></table></div>
+<div class="prose" style="margin-top:24px"><p>The screens are a copy of the canvas, file for file. <code>screens/MANIFEST.json</code> holds a SHA-256 hash for each file. Run <code>node scripts/design-check.mjs</code> to prove the copy matches the canvas. Run <code>node scripts/design-inventory.mjs</code> to list the texts, handlers and loops of each screen in <code>screens/inventory/</code>.</p><p>Canvas version <code>${esc(manifest.version)}</code>, pulled ${esc(manifest.pulled)}.</p></div>`;
+const screenViews = SCREENS.map((x) => subView("screens", "Screens", x.id, x.title, `<code>screens/${x.file}</code> · ${x.w} × ${x.h} · <a href="screens/inventory/${x.id}.json">Inventory</a>`, `screens/${x.file}`, scaled(`screens/${x.file}`, x.title, x.w, x.h))).join("\n");
+const pageIndex = `<div class="box"><table class="links"><tbody>${PAGES.map((x) => `<tr><td class="name"><a href="#pages/${x.id}">${esc(x.title)}</a></td><td class="muted">${esc(x.note)}</td></tr>`).join("")}</tbody></table></div>`;
+const dir = (x) => x.file.slice(0, x.file.lastIndexOf("/") + 1);
+const pageViews = PAGES.map((x) => subView("pages", "Pages", x.id, x.title, esc(x.note), x.file, `<p class="dl" style="margin-bottom:16px">${x.shots.map(([f, l]) => `<a href="${dir(x)}${f}">${esc(l)}</a>`).join("")}</p>${scaled(x.file, x.title, x.w, x.h)}`)).join("\n");
+const stateHead = `<tr><th></th>${STATES.map(([, l, h]) => `<th>${esc(l)}<small class="block">${esc(h)}</small></th>`).join("")}</tr>`;
+const stateRows = SQUADMATES.map((m) => `<tr><td class="who"><b>${m.name}</b><small class="block">${esc(m.role)}</small></td>${STATES.map(([st]) => `<td><a href="mascots/states/${mateName(m.id)}-${st}.svg" aria-label="${m.name}, ${st}">${squadmateMarkup(m.id, st, 64)}</a></td>`).join("")}</tr>`).join("");
+const stateView = `${SQUADMATE_CSS}<div class="box"><table class="states"><thead>${stateHead}</thead><tbody>${stateRows}</tbody></table></div>
+<div class="prose" style="margin-top:24px"><p>Each avatar links to its SVG in <code>mascots/states/</code>, drawn at 160 px. At 64 px and above the whole mascot shows. Under 64 px only the upper body shows. The drawing code is in <code>scripts/squadmates/</code>. It is the same code the app uses.</p></div>`;
 
 const VIEWS = [
 	["overview", "Overview"],
@@ -318,9 +352,12 @@ const VIEWS = [
 	["duration", "Duration", tokens.duration.tokens.length],
 	["components", "Components", info.length],
 	["mascots", "Mascots", MASCOTS.length],
+	["states", "Mascot states", STATES.length],
+	["screens", "Screens", SCREENS.length],
+	["pages", "Pages", PAGES.length],
 ];
 const navItem = ([id, label, n]) =>
-	`<li><a href="#${id}" data-q="${esc(label)}">${icon(id)}<span>${label}</span>${n != null ? `<span class="n">${n}</span>` : ""}</a>${id === "components" ? `<ul class="subnav">${compNav}</ul>` : ""}</li>`;
+	`<li><a href="#${id}" data-q="${esc(label)}">${icon(id)}<span>${label}</span>${n != null ? `<span class="n">${n}</span>` : ""}</a>${id === "components" ? `<ul class="subnav">${compNav}</ul>` : ""}${id === "screens" ? `<ul class="subnav">${SCREENS.map((x) => `<li><a href="#screens/${x.id}" data-q="${esc(x.title)}">${esc(x.title)}</a></li>`).join("")}</ul>` : ""}${id === "pages" ? `<ul class="subnav">${PAGES.map((x) => `<li><a href="#pages/${x.id}" data-q="${esc(x.title)}">${esc(x.title)}</a></li>`).join("")}</ul>` : ""}</li>`;
 const view = (id, title, note, body) =>
 	`<section class="view" data-view="${id}" data-title="${title}" aria-labelledby="h-${id}">
 <header class="vhead"><div><h1 id="h-${id}" tabindex="-1">${title}</h1>${note ? `<p class="sub">${note}</p>` : ""}</div></header>
@@ -364,7 +401,7 @@ code,.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:1
 .side nav svg{flex:none;color:var(--muted)}
 .side .n{margin-left:auto;font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums}
 .subnav{display:none;margin:2px 0 6px 19px!important;padding-left:10px!important;border-left:1px solid var(--line)}
-.side.open-sub .subnav,.side.searching .subnav{display:block}
+.side li.open .subnav,.side.searching .subnav{display:block}
 .subnav a{font-size:13.5px!important;padding:4px 10px!important}
 .sub-h{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--faint);padding:10px 10px 2px}
 .side hr{border:0;border-top:1px solid var(--line);margin:10px 4px}
@@ -425,6 +462,10 @@ tr:hover .track span,tr:focus-within .track span{left:calc(100% - 20px)}
 .dl a{font-size:12.5px;font-weight:500;text-decoration:none;padding:4px 11px;border-radius:999px;box-shadow:0 0 0 1px var(--line);color:var(--ink)}
 .dl a:hover{background:var(--soft)}
 ${CARD_CSS}
+.scaled{position:relative;margin:0 -40px;height:calc(var(--h) * var(--s, .75) * 1px);overflow:hidden;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:#f7f7f7}
+.scaled iframe{position:absolute;left:0;top:0;border:0;transform-origin:0 0;transform:scale(var(--s, .75))}
+table.states{min-width:900px}table.states th,table.states td{text-align:center;padding:10px 8px}table.states th{font-size:12.5px;vertical-align:bottom}
+table.states .who{text-align:left;white-space:nowrap}table.states svg{display:inline-block;vertical-align:middle}
 .scrim{display:none}
 @media (max-width:860px){
 .topbar{display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;padding:10px 14px;background:var(--side);border-bottom:1px solid var(--line);font-weight:600}
@@ -435,7 +476,7 @@ body.menu .side{transform:none}
 body.menu .scrim{display:block;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:15}
 main{margin-left:0;padding:16px 12px 64px}
 .sheet{padding:28px 20px 40px}
-.box,.frame{margin-left:-20px;margin-right:-20px}
+.box,.frame,.scaled{margin-left:-20px;margin-right:-20px}
 th:first-child,td:first-child{padding-left:20px}th:last-child,td:last-child{padding-right:20px}
 .vhead{flex-direction:column}.vhead h1{font-size:36px}
 }
@@ -460,7 +501,7 @@ th:first-child,td:first-child{padding-left:20px}th:last-child,td:last-child{padd
 ${view(
 	"overview",
 	"Overview",
-	`The reference for how tensquads looks. It holds Agent-UI, the visual language of the app, and the thirteen squad mascots. Agent-UI tokens version ${esc(tokens.version)}.`,
+	`The reference for how tensquads looks. It holds Agent-UI, the visual language of the app, the thirteen squad mascots, the product screens and the approved page designs. Agent-UI tokens version ${esc(tokens.version)}.`,
 	`<div class="stats">${stats}</div><div class="prose">${md(readme, 2)}</div>`,
 )}
 ${view("colors", "Colors", "Each token has a light and a dark value. Use the palette tokens before the raw scales.", colourView)}
@@ -483,6 +524,11 @@ ${view(
 	"One frosted toy for each agent. Each body takes its shape from the place the agent is named after. Every mascot wears one lens over its right eye. The lens is the squad's mark. Each mascot comes as SVG, PNG with a clear background and JPEG with a white background.",
 	`<div class="mascots">${cards}</div>`,
 )}
+${view("states", "Mascot states", "Each mascot in each Agent loop state. The eyes show what the agent is doing now. A badge shows the states a person must see.", stateView)}
+${view("screens", "Screens", "The product screens from the design canvas. The design is the source of truth for every screen.", screenIndex)}
+${screenViews}
+${view("pages", "Pages", "The approved designs for pages outside the app.", pageIndex)}
+${pageViews}
 </div>
 </main>
 <script>
@@ -508,21 +554,33 @@ ${view(
 		var parts = hash.split("/");
 		var id = OLD[parts[0]] || parts[0];
 		if (id === "components" && parts[1]) id = "c-" + parts[1];
+		if ((id === "screens" || id === "pages") && parts[1]) id = id + "-" + parts[1];
 		var current = views.filter(function (v) { return v.dataset.view === id; })[0];
 		if (!current) { id = "overview"; current = views[0]; }
 		views.forEach(function (v) { v.hidden = v !== current; });
 		current.querySelectorAll("iframe[data-src]").forEach(function (f) { f.src = f.dataset.src; f.removeAttribute("data-src"); });
-		var here = id.indexOf("c-") === 0 ? "#components/" + id.slice(2) : "#" + id;
+		var sub = /^(screens|pages)-(.+)$/.exec(id);
+		var here = id.indexOf("c-") === 0 ? "#components/" + id.slice(2) : sub ? "#" + sub[1] + "/" + sub[2] : "#" + id;
 		links.forEach(function (a) {
-			var on = a.getAttribute("href") === here || (here.indexOf("#components/") === 0 && a.getAttribute("href") === "#components");
+			var parent = here.split("/")[0];
+			var on = a.getAttribute("href") === here || (here.indexOf("/") !== -1 && a.getAttribute("href") === parent);
 			if (on) a.setAttribute("aria-current", a.getAttribute("href") === here ? "page" : "true");
 			else a.removeAttribute("aria-current");
 		});
-		side.classList.toggle("open-sub", id === "components" || id.indexOf("c-") === 0);
+		side.querySelectorAll(".main-nav > li").forEach(function (li) { li.classList.toggle("open", li.querySelector("a").getAttribute("href") === here.split("/")[0]); });
 		document.title = current.dataset.title + " · tensquads design system";
+		fit();
 		setMenu(false);
 		if (moveFocus) { window.scrollTo(0, 0); current.querySelector("h1").focus({ preventScroll: true }); }
 	}
+	// Scale each design to the width of the sheet.
+	function fit() {
+		document.querySelectorAll(".scaled").forEach(function (box) {
+			if (!box.offsetWidth) return;
+			box.style.setProperty("--s", String(box.offsetWidth / Number(box.style.getPropertyValue("--w"))));
+		});
+	}
+	window.addEventListener("resize", fit);
 	window.addEventListener("hashchange", function () { show(true); });
 	show(false);
 	menuBtn.addEventListener("click", function () { setMenu(!document.body.classList.contains("menu")); });
