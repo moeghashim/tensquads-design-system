@@ -24,7 +24,7 @@ This repository is the reference for how tensquads looks, and the single source 
 | `mascots/states/` | Each mascot in each Agent loop state, as SVG at 160 px. Built from `scripts/squadmates/`. |
 | `screens/` | The product screens from the design canvas, file for file: one `.dc.html` per screen, `canvas.json` and `MANIFEST.json`. `support.js` is a small runtime that draws them in a browser. Never edit these files by hand. Pull the canvas again. |
 | `screens/inventory/` | The texts, styles, handlers and loops of each screen. Built by `scripts/design-inventory.mjs`. |
-| `pages/` | The approved designs for pages outside the app: the two homepages and the squadmates sidebar, with screenshots. |
+| `pages/` | The approved designs for pages outside the app: the homepage and the squadmates sidebar, with screenshots. |
 | `scripts/` | The mascot drawings (`mascots.mjs`), the script that builds every generated file (`build.mjs`), `design-check.mjs` and `design-inventory.mjs`. |
 | `scripts/squadmates/` | The app's avatar code: the mascots with the Agent loop states. The app package `@tensquads/squadmates` uses the same code. |
 | `worker/`, `wrangler.jsonc` | The Cloudflare Worker that serves this repository at 10squads.com/design. |

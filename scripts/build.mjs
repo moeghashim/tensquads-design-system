@@ -319,8 +319,7 @@ const canvas = JSON.parse(readFileSync("screens/canvas.json", "utf8"));
 const manifest = JSON.parse(readFileSync("screens/MANIFEST.json", "utf8"));
 const SCREENS = canvas.order.map((file) => ({ id: file.replace(".dc.html", ""), file, ...canvas.boards[file] }));
 const PAGES = [
-	{ id: "home-v2", title: "Homepage: the approval moment", note: "The current homepage design. A squad does the work, and the owner says yes to what matters.", file: "pages/home-v2/home.html", w: 1440, h: 4852, shots: [["home-1440.png", "1440 px"], ["home-390.png", "390 px"], ["home-dashboard.jpg", "Dashboard image"]] },
-	{ id: "home", title: "Homepage: first design", note: "The first approved homepage. It has the build next to the design at both widths.", file: "pages/home/home.html", w: 1440, h: 5440, shots: [["home-1440.png", "1440 px"], ["home-390.png", "390 px"], ["build-vs-design-1440.png", "Build and design, 1440 px"], ["build-vs-design-390.png", "Build and design, 390 px"]] },
+	{ id: "home-v2", title: "Homepage: the approval moment", note: "The homepage design. A squad does the work, and the owner says yes to what matters.", file: "pages/home-v2/home.html", w: 1440, h: 4852, shots: [["home-1440.png", "1440 px"], ["home-390.png", "390 px"], ["home-dashboard.jpg", "Dashboard image"]] },
 	{ id: "squadmates-sidebar", title: "Squadmates in the sidebar", note: "How the squad shows in the app sidebar.", file: "pages/squadmates-sidebar/sidebar.html", w: 1180, h: 760, shots: [["sidebar.png", "1180 px"]] },
 ];
 // A design drawn at its own width, scaled down to fit the sheet. The script sets --s.
