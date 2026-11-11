@@ -1,4 +1,4 @@
-// Ten squad mascots. Frosted resin toys. Each body comes from the place the agent is named after.
+// Eleven squad mascots. Frosted resin toys. Each body comes from the place the agent is named after.
 export const MASCOTS = [
   { id: "master", name: "Petra", role: "Master", place: "Petra, Jordan", colour: "Rose sandstone",
     p: { light:"#FBD8D0", base:"#EBA196", deep:"#C9746A", limb:"#E3958A" },
@@ -50,6 +50,11 @@ export const MASCOTS = [
     shape: "Two shell sails, like the roof of the Sydney Opera House.",
     why: "Sydney welcomes new people. It hires and runs onboarding.",
     pose: "Shows a name badge." },
+  { id: "places", name: "Greenwich", role: "Places", place: "Greenwich, London", colour: "Meridian lime",
+    p: { light:"#F6FBC4", base:"#DDEB5C", deep:"#A8B824", limb:"#D3E350" },
+    shape: "An observatory dome with an open shutter slit and a red time ball on top, like the Royal Observatory at Greenwich.",
+    why: "Every map starts at the meridian in Greenwich. Greenwich keeps the business on Google Maps and the other maps, correct and easy to find.",
+    pose: "Holds up a folded map." },
 ];
 
 const INK = "#1B1B1F";
@@ -177,6 +182,22 @@ ${sheen(k, "M90 280 Q92 200 150 130 Q110 200 104 280 Z")}
 ${face(k, 122, 166, 222, 24)}${smile(144, 258)}
 <rect x="114" y="252" width="56" height="40" rx="7" fill="#fff" stroke="#D6DCE4" stroke-width="2"/><circle cx="130" cy="272" r="8" fill="${c.base}"/><path d="M144 266 h18 M144 278 h12" stroke="#9AA3B1" stroke-width="3" stroke-linecap="round"/>
 ${limb(c, "M214 250 Q196 268 172 268")}${hand(c, 170, 268)}`,
+  places: (k, c) => `${legs(c, 124, 176, 300)}
+${limb(c, "M88 228 Q60 244 64 276")}${hand(c, 64, 278)}
+<rect x="88" y="150" width="124" height="156" rx="18" fill="url(#${k}b)"/>
+${rim("M100 186 L200 186")}
+<path d="M66 158 A84 80 0 0 1 234 158 Z" fill="url(#${k}b)"/>
+<path d="M92 156 Q100 112 132 88 M208 156 Q200 112 168 88" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="4" stroke-linecap="round"/>
+<path d="M141 79 L159 79 L162 158 L138 158 Z" fill="${c.deep}" opacity=".55"/>
+<rect x="62" y="152" width="176" height="14" rx="7" fill="${c.deep}" opacity=".85"/>
+<rect x="144" y="64" width="12" height="16" rx="3" fill="#B0894A"/>
+<circle cx="150" cy="56" r="14" fill="#E5574A"/><circle cx="145" cy="51" r="4.5" fill="#fff" opacity=".6"/>
+<path d="M150 268 L150 304" stroke="#D9AE45" stroke-width="6" stroke-linecap="round"/>
+${sheen(k, "M82 150 A72 70 0 0 1 128 94 Q104 120 98 150 Z")}${sheen(k, "M100 176 Q96 236 104 292 L114 292 Q108 236 112 176 Z")}
+${face(k, 126, 174, 214, 26)}${smile(150, 248)}
+${limb(c, "M212 226 Q244 214 250 188")}
+<g transform="rotate(-8 256 164)"><path d="M224 140 L246 132 L266 140 L288 132 L288 184 L266 192 L246 184 L224 192 Z" fill="#F4EFE4" stroke="#D3C9B5" stroke-width="2" stroke-linejoin="round"/><path d="M246 132 L246 184 L266 192 L266 140 Z" fill="#E4DAC6"/><path d="M232 176 Q248 154 258 166 T282 148" fill="none" stroke="#5F86D6" stroke-width="3" stroke-dasharray="4 4" stroke-linecap="round"/><circle cx="282" cy="146" r="6" fill="#E5574A"/></g>
+${hand(c, 250, 188)}`,
 };
 
 export function svg(m, k = m.id, standalone = false) {

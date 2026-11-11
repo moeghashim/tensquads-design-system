@@ -2,7 +2,7 @@
 
 This repository is the reference for how tensquads looks. It is shown as a page at <https://10squads.com/design>. The same page is `index.html` here.
 
-![The ten squad mascots](mascots/lineup.png)
+![The eleven squad mascots](mascots/lineup.png)
 
 ## Contents
 
@@ -13,7 +13,7 @@ This repository is the reference for how tensquads looks. It is shown as a page 
 | `mascots/png/` | One PNG for each agent, 1200 × 1480 px, with a clear background. |
 | `mascots/jpeg/` | One JPEG for each agent, 1200 × 1480 px, with a white background. |
 | `mascots/cards/png/`, `mascots/cards/jpeg/` | One card for each agent, 1200 px wide: the mascot, name, role, palette, shape, reason, pose and colour. |
-| `mascots/lineup.png`, `mascots/lineup.jpg` | All ten mascots in one image. |
+| `mascots/lineup.png`, `mascots/lineup.jpg` | All eleven mascots in one image. |
 | `mascots/mascots.json` | The name, role, palette, shape, reason and pose of each mascot, with its file paths. |
 | `agent-ui/README.md` | Agent-UI, the visual language of the app: principles, content, colour, type, spacing, focus, themes, chat, icons and layout. |
 | `agent-ui/data-display.md` | The rules for dashboards and charts. |
@@ -45,6 +45,7 @@ Each agent has one frosted toy. Each body takes its shape from the place the age
 | Angkor | Website builder | Angkor Wat, Cambodia | Tower of tiers with a lotus-bud tip | Carries a building block | Temple amber |
 | Delphi | Analytics | Delphi, Greece | Fluted column with a scroll capital | Holds up a chart | Laurel olive |
 | Sydney | People | Sydney, Australia | Two shell sails, like the Opera House | Shows a name badge | Harbour cyan |
+| Greenwich | Places | Greenwich, London | Observatory dome with a shutter slit and a red time ball | Holds up a folded map | Meridian lime |
 
 The exact colours are in `mascots/mascots.json`.
 

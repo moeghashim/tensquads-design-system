@@ -228,5 +228,28 @@
       "cardPng": "mascots/cards/png/sydney.png",
       "cardJpeg": "mascots/cards/jpeg/sydney.jpg"
     }
+  },
+  {
+    "id": "places",
+    "name": "Greenwich",
+    "role": "Places",
+    "namedAfter": "Greenwich, London",
+    "colourName": "Meridian lime",
+    "palette": {
+      "light": "#F6FBC4",
+      "base": "#DDEB5C",
+      "deep": "#A8B824",
+      "limb": "#D3E350"
+    },
+    "shape": "An observatory dome with an open shutter slit and a red time ball on top, like the Royal Observatory at Greenwich.",
+    "why": "Every map starts at the meridian in Greenwich. Greenwich keeps the business on Google Maps and the other maps, correct and easy to find.",
+    "pose": "Holds up a folded map.",
+    "files": {
+      "svg": "mascots/svg/greenwich.svg",
+      "png": "mascots/png/greenwich.png",
+      "jpeg": "mascots/jpeg/greenwich.jpg",
+      "cardPng": "mascots/cards/png/greenwich.png",
+      "cardJpeg": "mascots/cards/jpeg/greenwich.jpg"
+    }
   }
 ]
