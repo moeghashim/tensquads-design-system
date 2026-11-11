@@ -10,8 +10,8 @@ const { chromium } = require("playwright");
 const REPO = "https://github.com/moeghashim/tensquads-design-system";
 const slug = (m) => m.name.toLowerCase();
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-for (const d of ["mascots/svg", "mascots/png", "mascots/jpeg", "mascots/cards", "mascots/states", "agent-ui/previews"]) rmSync(d, { recursive: true, force: true });
-for (const d of ["mascots/svg", "mascots/png", "mascots/jpeg", "mascots/cards/png", "mascots/cards/jpeg", "mascots/states", "agent-ui/previews"]) mkdirSync(d, { recursive: true });
+for (const d of ["mascots/svg", "mascots/png", "mascots/jpeg", "mascots/cards", "mascots/states", "mascots/avatars", "agent-ui/previews"]) rmSync(d, { recursive: true, force: true });
+for (const d of ["mascots/svg", "mascots/png", "mascots/jpeg", "mascots/cards/png", "mascots/cards/jpeg", "mascots/states", "mascots/avatars", "agent-ui/previews"]) mkdirSync(d, { recursive: true });
 const tokens = JSON.parse(readFileSync("agent-ui/tokens.json", "utf8"));
 
 // ---- tokens.css: every token as a custom property. Light in :root, dark under data-theme="dark". ----
@@ -169,6 +169,8 @@ for (const m of MASCOTS) writeFileSync(`mascots/svg/${slug(m)}.svg`, `<?xml vers
 const STATES = [["idle", "Idle", "No task. Blinks slowly."], ...AGENT_LOOP_STATES.map((s) => [s.id, s.label, s.hint])];
 const mateName = (id) => SQUADMATES.find((x) => x.id === id).name.toLowerCase();
 for (const m of SQUADMATES) for (const [st] of STATES) writeFileSync(`mascots/states/${mateName(m.id)}-${st}.svg`, `<?xml version="1.0" encoding="UTF-8"?>\n${squadmateMarkup(m.id, st, 160)}\n`);
+// The upper-body crop for small avatars, such as the screens use. Under 64 px the app draws this crop.
+for (const m of SQUADMATES) for (const [st] of STATES) writeFileSync(`mascots/avatars/${mateName(m.id)}-${st}.svg`, `<?xml version="1.0" encoding="UTF-8"?>\n${squadmateMarkup(m.id, st, 48)}\n`);
 const browser = await chromium.launch();
 const p = await browser.newPage({ viewport: { width: 600, height: 740 }, deviceScaleFactor: 2 });
 for (const m of MASCOTS) {
@@ -330,7 +332,7 @@ const subView = (kind, label, id, title, note, open, body) => `<section class="v
 ${body}
 </section>`;
 const screenIndex = `<div class="box"><table class="links"><thead><tr><th>Screen</th><th>File</th><th>Size</th></tr></thead><tbody>${SCREENS.map((x) => `<tr><td class="name"><a href="#screens/${x.id}">${esc(x.title)}</a></td><td class="mono small">${x.file}</td><td class="mono small">${x.w} × ${x.h}</td></tr>`).join("")}</tbody></table></div>
-<div class="prose" style="margin-top:24px"><p>The screens are a copy of the canvas, file for file. <code>screens/MANIFEST.json</code> holds a SHA-256 hash for each file. Run <code>node scripts/design-check.mjs</code> to prove the copy matches the canvas. Run <code>node scripts/design-inventory.mjs</code> to list the texts, handlers and loops of each screen in <code>screens/inventory/</code>.</p><p>Canvas version <code>${esc(manifest.version)}</code>, pulled ${esc(manifest.pulled)}.</p></div>`;
+<div class="prose" style="margin-top:24px"><p>The screens started as a copy of the canvas. Since 11 November 2026 they are edited here. <code>screens/MANIFEST.json</code> holds a SHA-256 hash for each approved file. Run <code>node scripts/design-check.mjs</code> to prove the screens match the manifest. Run <code>node scripts/design-inventory.mjs</code> to list the texts, handlers and loops of each screen in <code>screens/inventory/</code>.</p><p>Canvas version <code>${esc(manifest.version)}</code>, pulled ${esc(manifest.pulled)}.</p></div>`;
 const screenViews = SCREENS.map((x) => subView("screens", "Screens", x.id, x.title, `<code>screens/${x.file}</code> · ${x.w} × ${x.h} · <a href="screens/inventory/${x.id}.json">Inventory</a>`, `screens/${x.file}`, scaled(`screens/${x.file}`, x.title, x.w, x.h))).join("\n");
 const pageIndex = `<div class="box"><table class="links"><tbody>${PAGES.map((x) => `<tr><td class="name"><a href="#pages/${x.id}">${esc(x.title)}</a></td><td class="muted">${esc(x.note)}</td></tr>`).join("")}</tbody></table></div>`;
 const dir = (x) => x.file.slice(0, x.file.lastIndexOf("/") + 1);

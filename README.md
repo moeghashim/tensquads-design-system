@@ -22,7 +22,7 @@ This repository is the reference for how tensquads looks, and the single source 
 | `agent-ui/components/` | The components: `bundle.css` (the `.aui-*` classes), `bundle.js` (the builders on `window.AgentUI`), `index.d.ts` (their types), and one folder per component with its guide (`README.md`) and its example (`preview.html`). |
 | `agent-ui/previews/` | Each component example as a page that runs on its own. Built from `agent-ui/components/`. |
 | `mascots/states/` | Each mascot in each Agent loop state, as SVG at 160 px. Built from `scripts/squadmates/`. |
-| `screens/` | The product screens from the design canvas, file for file: one `.dc.html` per screen, `canvas.json` and `MANIFEST.json`. `support.js` is a small runtime that draws them in a browser. Never edit these files by hand. Pull the canvas again. |
+| `screens/` | The product screens from the design canvas, file for file: one `.dc.html` per screen, `canvas.json` and `MANIFEST.json`. `support.js` is a small runtime that draws them in a browser. They started as a copy of the canvas. Since 11 November 2026 they are edited here, and `MANIFEST.json` holds the hash of each approved file. |
 | `screens/inventory/` | The texts, styles, handlers and loops of each screen. Built by `scripts/design-inventory.mjs`. |
 | `pages/` | The approved designs for pages outside the app: the homepage and the squadmates sidebar, with screenshots. |
 | `scripts/` | The mascot drawings (`mascots.mjs`), the script that builds every generated file (`build.mjs`), `design-check.mjs` and `design-inventory.mjs`. |

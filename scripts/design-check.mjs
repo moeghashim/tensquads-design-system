@@ -1,4 +1,4 @@
-// design-check: proves that screens/ is the same as the canvas it was pulled from.
+// design-check: proves that screens/ is the same as the version in its manifest.
 // Reads screens/MANIFEST.json. Hashes each file. Exits 1 on any difference.
 // Run: node scripts/design-check.mjs
 import { createHash } from "node:crypto";
@@ -20,8 +20,8 @@ for (const [file, expected] of Object.entries(manifest.files)) {
 console.log(`canvas ${manifest.canvas} version ${manifest.version}, pulled ${manifest.pulled}`);
 if (bad > 0) {
 	console.error(
-		`${bad} file(s) differ from the canvas version in MANIFEST.json. Do not edit screens/ by hand. Ask Moe to pull the canvas again.`,
+		`${bad} file(s) differ from screens/MANIFEST.json. Change a screen only with an approved design change, then update its hash in the manifest.`,
 	);
 	process.exit(1);
 }
-console.log("screens/ matches the canvas.");
+console.log("screens/ matches the manifest.");
