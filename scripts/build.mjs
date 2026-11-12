@@ -2,6 +2,7 @@
 // Run it from the repository root: npm run build
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
+import { logoSvg } from "./logo.mjs";
 import { MASCOTS, svg } from "./mascots.mjs";
 import { AGENT_LOOP_STATES, SQUADMATE_CSS, SQUADMATES, squadmateMarkup } from "./squadmates/index.ts";
 
@@ -171,7 +172,18 @@ const mateName = (id) => SQUADMATES.find((x) => x.id === id).name.toLowerCase();
 for (const m of SQUADMATES) for (const [st] of STATES) writeFileSync(`mascots/states/${mateName(m.id)}-${st}.svg`, `<?xml version="1.0" encoding="UTF-8"?>\n${squadmateMarkup(m.id, st, 160)}\n`);
 // The upper-body crop for small avatars, such as the screens use. Under 64 px the app draws this crop.
 for (const m of SQUADMATES) for (const [st] of STATES) writeFileSync(`mascots/avatars/${mateName(m.id)}-${st}.svg`, `<?xml version="1.0" encoding="UTF-8"?>\n${squadmateMarkup(m.id, st, 48)}\n`);
+// The logo: SVG for the web, PNG for places that need a bitmap.
+mkdirSync("logo", { recursive: true });
+writeFileSync("logo/logo.svg", `<?xml version="1.0" encoding="UTF-8"?>\n${logoSvg({ size: 64 })}\n`);
+writeFileSync("logo/logo-dark.svg", `<?xml version="1.0" encoding="UTF-8"?>\n${logoSvg({ size: 64, dark: true })}\n`);
+writeFileSync("logo/favicon.svg", `${logoSvg({ size: 32 })}\n`);
 const browser = await chromium.launch();
+const lg = await browser.newPage({ viewport: { width: 512, height: 512 } });
+for (const [file, px, dark] of [["logo/logo-512.png", 512, false], ["logo/logo-dark-512.png", 512, true], ["logo/apple-touch-icon.png", 180, false], ["logo/favicon-32.png", 32, false]]) {
+	await lg.setViewportSize({ width: px, height: px });
+	await lg.setContent(`<body style="margin:0;background:transparent">${logoSvg({ size: px, dark })}</body>`);
+	await lg.screenshot({ path: file, omitBackground: true });
+}
 const p = await browser.newPage({ viewport: { width: 600, height: 740 }, deviceScaleFactor: 2 });
 for (const m of MASCOTS) {
 	await p.setContent(`<body style="margin:0;background:transparent">${svg(m, m.id, true)}</body>`);
@@ -207,6 +219,7 @@ const ICON = {
 	easing: '<circle cx="9" cy="9" r="6.5"/><path d="M9 2.5a6.5 6.5 0 0 0 0 13"/>',
 	duration: '<circle cx="9" cy="9.5" r="6"/><path d="M9 6.5v3l2 1.5M7 2h4"/>',
 	components: '<path d="M9 2.5 15 5.8v6.4L9 15.5 3 12.2V5.8zM3 5.8 9 9l6-3.2M9 9v6.5"/>',
+	logo: '<circle cx="9" cy="3.5" r="1.3"/><circle cx="14.2" cy="7.3" r="1.3"/><circle cx="12.2" cy="13.4" r="1.3"/><circle cx="5.8" cy="13.4" r="1.3"/><circle cx="3.8" cy="7.3" r="1.3"/><circle cx="9" cy="9" r="1.6"/>',
 	mascots: '<rect x="2.5" y="2.5" width="13" height="13" rx="3"/><circle cx="7" cy="8" r="1"/><circle cx="11.5" cy="8" r="2"/><path d="M6.5 12c1.5 1 3.5 1 5 0"/>',
 	screens: '<rect x="2.5" y="3.5" width="13" height="9.5" rx="1.5"/><path d="M6.5 15.5h5M9 13v2.5"/>',
 	pages: '<path d="M4.5 2.5h6l3 3v10h-9z"/><path d="M10.5 2.5v3h3M6.5 9h5M6.5 12h5"/>',
@@ -342,6 +355,11 @@ const stateRows = SQUADMATES.map((m) => `<tr><td class="who"><b>${m.name}</b><sm
 const stateView = `${SQUADMATE_CSS}<div class="box"><table class="states"><thead>${stateHead}</thead><tbody>${stateRows}</tbody></table></div>
 <div class="prose" style="margin-top:24px"><p>Each avatar links to its SVG in <code>mascots/states/</code>, drawn at 160 px. At 64 px and above the whole mascot shows. Under 64 px only the upper body shows. The drawing code is in <code>scripts/squadmates/</code>. It is the same code the app uses.</p></div>`;
 
+const logoView = `<div class="logos-grid"><div class="lg light">${logoSvg({ size: 128 })}</div><div class="lg dark">${logoSvg({ size: 128, dark: true })}</div></div>
+<div class="lg-sizes"><span class="lg-nav">${logoSvg({ size: 28, label: "" })}<b>tensquads</b></span><span>${logoSvg({ size: 32 })}${logoSvg({ size: 16 })} favicon 32 and 16</span></div>
+<p class="dl" style="margin:20px 0"><a href="logo/logo.svg">SVG</a><a href="logo/logo-dark.svg">SVG, dark background</a><a href="logo/logo-512.png">PNG 512</a><a href="logo/logo-dark-512.png">PNG 512, dark background</a><a href="logo/favicon.svg">Favicon SVG</a><a href="logo/favicon-32.png">Favicon PNG 32</a><a href="logo/apple-touch-icon.png">Apple touch icon 180</a></p>
+<div class="prose"><p><strong>Do</strong>: use the black tile on light backgrounds and the white tile on dark backgrounds. Put the name "tensquads" to the right of the tile, in Inter 600, 8 px away at 28 px. <strong>Do not</strong>: change the seat colours, take away the tile, or put a mascot in place of the logo.</p><p>The drawing code is in <code>scripts/logo.mjs</code>.</p></div>`;
+
 const VIEWS = [
 	["overview", "Overview"],
 	["colors", "Colors", tokens.color.tokens.length],
@@ -352,6 +370,7 @@ const VIEWS = [
 	["easing", "Easing", tokens.easing.tokens.length],
 	["duration", "Duration", tokens.duration.tokens.length],
 	["components", "Components", info.length],
+	["logo", "Logo"],
 	["mascots", "Mascots", MASCOTS.length],
 	["states", "Mascot states", STATES.length],
 	["screens", "Screens", SCREENS.length],
@@ -374,6 +393,8 @@ const page = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>tensquads design system</title>
+<link rel="icon" href="logo/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="logo/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400&amp;family=Newsreader:opsz,wght@6..72,400&amp;family=Fredoka:wght@500;600&amp;family=DM+Sans:wght@400;500;600&amp;display=swap">
@@ -456,6 +477,7 @@ tr:hover .track span,tr:focus-within .track span{left:calc(100% - 20px)}
 .prose h2{margin:32px 0 10px;font-size:20px;font-weight:600}.prose h3{margin:24px 0 8px;font-size:16px;font-weight:600}.prose h4,.prose h5{margin:18px 0 6px;font-size:15px;font-weight:600}
 .frame{margin:0 -40px 32px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:#f7f7f7}
 .frame iframe{display:block;width:100%;border:0}
+.logos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:20px}.lg{display:grid;place-items:center;height:220px;border-radius:16px;box-shadow:0 0 0 1px var(--line)}.lg.light{background:#fff}.lg.dark{background:#0d0d0d}.lg-sizes{display:flex;flex-wrap:wrap;gap:32px;align-items:center;margin-top:20px;color:var(--muted);font-size:13px}.lg-sizes span{display:inline-flex;align-items:center;gap:10px}.lg-nav{gap:8px!important;color:var(--ink);font-size:16px}.lg-nav b{font-weight:600}
 .mascots{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:20px}
 .mc{display:flex;flex-direction:column;gap:10px}
 .mc .mcard{border-radius:14px;box-shadow:0 0 0 1px var(--line),0 1px 3px rgba(13,13,13,.06)}
@@ -487,7 +509,7 @@ th:first-child,td:first-child{padding-left:20px}th:last-child,td:last-child{padd
 <body>
 <div class="topbar"><button type="button" class="menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="side">${icon("menu")}</button>tensquads design system</div>
 <aside class="side" id="side">
-<a class="brand" href="#overview">tensquads design system</a>
+<a class="brand" href="#overview">${logoSvg({ size: 24, label: "" })}tensquads design system</a>
 <div class="search">${icon("search")}<input type="search" placeholder="Search" aria-label="Search the menu" autocomplete="off"></div>
 <nav aria-label="Design system">
 <ul class="main-nav">${VIEWS.map(navItem).join("")}</ul>
@@ -519,6 +541,12 @@ ${view(
 	`${compIndex}<div class="tgroup"><h2>Data display</h2><div class="prose">${md(dataDisplay, 3)}</div></div>`,
 )}
 ${compViews}
+${view(
+	"logo",
+	"Logo",
+	"The round table. Ten seats sit around one table, in the colours of the squad mascots. The white centre is the owner: the squad works around the owner. The logo is not a mascot. Petra is an agent, not the brand.",
+	logoView,
+)}
 ${view(
 	"mascots",
 	"Mascots",

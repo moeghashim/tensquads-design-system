@@ -1,14 +1,14 @@
-{"canvas":"https://claude.ai/artifact/B7seDz5psECQTerDG6rfy4","version":"1793448823-a766+ds1","pulled":"2026-10-31","edited":"2026-11-11","note":"Since 2026-11-11 the screens are edited in this repository, not pulled from the canvas. Main.dc.html shows the characters and mascots from decision 33.","files":{
+{"canvas":"https://claude.ai/artifact/B7seDz5psECQTerDG6rfy4","version":"1793448823-a766+ds1","pulled":"2026-10-31","edited":"2026-11-12","note":"Since 2026-11-11 the screens are edited in this repository, not pulled from the canvas. Main.dc.html shows the characters and mascots from decision 33. Home, SignIn and Onboarding show the round-table logo (2026-11-12).","files":{
 "Accounts.dc.html":"4b3b56e139ac5712a036a347f8edb30ad8cf3942fe32c1fce84a4e3b0984bad1",
 "AgentDetail.dc.html":"d7e5726fecb8516861a7fdc9a6e1eb86b8aa848740c0d7ef4354dbe6cb5a0cb5",
 "AgentImages.dc.html":"46ef8d22502913149dd7c51e37b43cd41ed31ebfffe0df5afb227d4cea922ee0",
 "Agents.dc.html":"ee479cd67e3f16f5e0b11af6d5c246a5e76b3bf36141964c67b95303a5b65c4f",
 "Chat.dc.html":"4adab2f07d7cdbb618d70cded61211d044121a2efef05e348231dcc0175f0587",
-"Home.dc.html":"31254b6205702f73a5db18d0f1588ecc6cf6fe933f7afd0be41224ae5e1cee13",
+"Home.dc.html":"d0fc7e2881568b09deee3486cf4c590ed9579127c1ea9c76036b673adc6bc6b8",
 "Main.dc.html":"f0105ce0877808d5e65b9bf4b147f12f2cb6cab8fc19b6848f7b0e837cf43dfd",
-"Onboarding.dc.html":"3cec9e7b1bb5b1b5c7e1582addd5c338ad35eea7582270b7585f25258c14b98c",
+"Onboarding.dc.html":"06004c943c2bc54e5af4bd39d36f09684ebc8eec5f3392ad95454cd74676eeef",
 "Rules.dc.html":"90d43b0458f4d9ec5f15d6b7ca09cb69f4ad9c4b79f268e93e0b30b25d8d6070",
-"SignIn.dc.html":"f2a1b9a09f35093ceb1299d151e6dd7cb05830afcc9eaeacb395a9c91c8370bd",
+"SignIn.dc.html":"91aefd8e6155ed5d941e84e850d71125c60c7d1832f1bcc07d375bb1b732b06e",
 "Traffic.dc.html":"1e084bf939dec51d1eb287f6cb3160581ec4b9e449cfb7a66354505eb96b8eae",
 "canvas.json":"273012e70b77b3a48ecd0c372bd55412d0b70dddf684da96fb1e54b90fada1dc",
 "ds/agent-ui/tokens.json":"87e4d4dbdedc4bcfa5916bdc0d7d3e35f1f802ec1faa1e5f297a4af94546e256"}}
