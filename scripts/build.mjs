@@ -2,7 +2,7 @@
 // Run it from the repository root: npm run build
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import { logoSvg } from "./logo.mjs";
+import { logoSvg, wordmarkSvg } from "./logo.mjs";
 import { MASCOTS, svg } from "./mascots.mjs";
 import { AGENT_LOOP_STATES, SQUADMATE_CSS, SQUADMATES, squadmateMarkup } from "./squadmates/index.ts";
 
@@ -177,11 +177,18 @@ mkdirSync("logo", { recursive: true });
 writeFileSync("logo/logo.svg", `<?xml version="1.0" encoding="UTF-8"?>\n${logoSvg({ size: 64 })}\n`);
 writeFileSync("logo/logo-dark.svg", `<?xml version="1.0" encoding="UTF-8"?>\n${logoSvg({ size: 64, dark: true })}\n`);
 writeFileSync("logo/favicon.svg", `${logoSvg({ size: 32 })}\n`);
+writeFileSync("logo/wordmark.svg", `<?xml version="1.0" encoding="UTF-8"?>\n${wordmarkSvg({ height: 64 })}\n`);
+writeFileSync("logo/wordmark-dark.svg", `<?xml version="1.0" encoding="UTF-8"?>\n${wordmarkSvg({ height: 64, dark: true })}\n`);
 const browser = await chromium.launch();
 const lg = await browser.newPage({ viewport: { width: 512, height: 512 } });
 for (const [file, px, dark] of [["logo/logo-512.png", 512, false], ["logo/logo-dark-512.png", 512, true], ["logo/apple-touch-icon.png", 180, false], ["logo/favicon-32.png", 32, false]]) {
 	await lg.setViewportSize({ width: px, height: px });
 	await lg.setContent(`<body style="margin:0;background:transparent">${logoSvg({ size: px, dark })}</body>`);
+	await lg.screenshot({ path: file, omitBackground: true });
+}
+for (const [file, dark] of [["logo/wordmark-1024.png", false], ["logo/wordmark-dark-1024.png", true]]) {
+	await lg.setViewportSize({ width: 1024, height: 234 });
+	await lg.setContent(`<body style="margin:0;background:transparent">${wordmarkSvg({ height: 234, dark })}</body>`);
 	await lg.screenshot({ path: file, omitBackground: true });
 }
 const p = await browser.newPage({ viewport: { width: 600, height: 740 }, deviceScaleFactor: 2 });
@@ -219,7 +226,7 @@ const ICON = {
 	easing: '<circle cx="9" cy="9" r="6.5"/><path d="M9 2.5a6.5 6.5 0 0 0 0 13"/>',
 	duration: '<circle cx="9" cy="9.5" r="6"/><path d="M9 6.5v3l2 1.5M7 2h4"/>',
 	components: '<path d="M9 2.5 15 5.8v6.4L9 15.5 3 12.2V5.8zM3 5.8 9 9l6-3.2M9 9v6.5"/>',
-	logo: '<circle cx="9" cy="3.5" r="1.3"/><circle cx="14.2" cy="7.3" r="1.3"/><circle cx="12.2" cy="13.4" r="1.3"/><circle cx="5.8" cy="13.4" r="1.3"/><circle cx="3.8" cy="7.3" r="1.3"/><circle cx="9" cy="9" r="1.6"/>',
+	logo: '<rect x="2.5" y="5" width="4.5" height="10" rx="2.25"/><circle cx="12.25" cy="10" r="3.75"/>',
 	mascots: '<rect x="2.5" y="2.5" width="13" height="13" rx="3"/><circle cx="7" cy="8" r="1"/><circle cx="11.5" cy="8" r="2"/><path d="M6.5 12c1.5 1 3.5 1 5 0"/>',
 	screens: '<rect x="2.5" y="3.5" width="13" height="9.5" rx="1.5"/><path d="M6.5 15.5h5M9 13v2.5"/>',
 	pages: '<path d="M4.5 2.5h6l3 3v10h-9z"/><path d="M10.5 2.5v3h3M6.5 9h5M6.5 12h5"/>',
@@ -355,10 +362,11 @@ const stateRows = SQUADMATES.map((m) => `<tr><td class="who"><b>${m.name}</b><sm
 const stateView = `${SQUADMATE_CSS}<div class="box"><table class="states"><thead>${stateHead}</thead><tbody>${stateRows}</tbody></table></div>
 <div class="prose" style="margin-top:24px"><p>Each avatar links to its SVG in <code>mascots/states/</code>, drawn at 160 px. At 64 px and above the whole mascot shows. Under 64 px only the upper body shows. The drawing code is in <code>scripts/squadmates/</code>. It is the same code the app uses.</p></div>`;
 
-const logoView = `<div class="logos-grid"><div class="lg light">${logoSvg({ size: 128 })}</div><div class="lg dark">${logoSvg({ size: 128, dark: true })}</div></div>
-<div class="lg-sizes"><span class="lg-nav">${logoSvg({ size: 28, label: "" })}<b>tensquads</b></span><span>${logoSvg({ size: 32 })}${logoSvg({ size: 16 })} favicon 32 and 16</span></div>
-<p class="dl" style="margin:20px 0"><a href="logo/logo.svg">SVG</a><a href="logo/logo-dark.svg">SVG, dark background</a><a href="logo/logo-512.png">PNG 512</a><a href="logo/logo-dark-512.png">PNG 512, dark background</a><a href="logo/favicon.svg">Favicon SVG</a><a href="logo/favicon-32.png">Favicon PNG 32</a><a href="logo/apple-touch-icon.png">Apple touch icon 180</a></p>
-<div class="prose"><p><strong>Do</strong>: use the black tile on light backgrounds and the white tile on dark backgrounds. Put the name "tensquads" to the right of the tile, in Inter 600, 8 px away at 28 px. <strong>Do not</strong>: change the seat colours, take away the tile, or put a mascot in place of the logo.</p><p>The drawing code is in <code>scripts/logo.mjs</code>.</p></div>`;
+const logoView = `<div class="logos-grid"><div class="lg light">${wordmarkSvg({ height: 56 })}</div><div class="lg dark">${wordmarkSvg({ height: 56, dark: true })}</div></div>
+<div class="logos-grid" style="margin-top:20px"><div class="lg light">${logoSvg({ size: 128 })}</div><div class="lg dark">${logoSvg({ size: 128, dark: true })}</div></div>
+<div class="lg-sizes"><span class="lg-nav">${wordmarkSvg({ height: 24, label: "" })}</span><span>${logoSvg({ size: 32 })}${logoSvg({ size: 16 })} favicon 32 and 16</span></div>
+<p class="dl" style="margin:20px 0"><a href="logo/wordmark.svg">Wordmark SVG</a><a href="logo/wordmark-dark.svg">Wordmark SVG, dark background</a><a href="logo/wordmark-1024.png">Wordmark PNG</a><a href="logo/wordmark-dark-1024.png">Wordmark PNG, dark background</a><a href="logo/logo.svg">Mark SVG</a><a href="logo/logo-dark.svg">Mark SVG, dark background</a><a href="logo/logo-512.png">Mark PNG 512</a><a href="logo/logo-dark-512.png">Mark PNG 512, dark background</a><a href="logo/favicon.svg">Favicon SVG</a><a href="logo/favicon-32.png">Favicon PNG 32</a><a href="logo/apple-touch-icon.png">Apple touch icon 180</a></p>
+<div class="prose"><p><strong>Do</strong>: use the wordmark wherever the name fits: the site header, documents, the app's top bar. Use the near-black ink on light backgrounds and the white ink on dark ones. Use the mark on its tile only where a square is needed: the favicon, the app icon, an avatar. <strong>Do not</strong>: recolour the coral figure, separate the figure from the ring inside the wordmark, set the name in another font, or put a mascot in place of the logo.</p><p>The source drawing is <code>scripts/logo-source.svg</code>; the drawing code is in <code>scripts/logo.mjs</code>.</p></div>`;
 
 const VIEWS = [
 	["overview", "Overview"],
@@ -509,7 +517,7 @@ th:first-child,td:first-child{padding-left:20px}th:last-child,td:last-child{padd
 <body>
 <div class="topbar"><button type="button" class="menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="side">${icon("menu")}</button>tensquads design system</div>
 <aside class="side" id="side">
-<a class="brand" href="#overview">${logoSvg({ size: 24, label: "" })}tensquads design system</a>
+<a class="brand" href="#overview">${wordmarkSvg({ height: 22, label: "tensquads" })}design system</a>
 <div class="search">${icon("search")}<input type="search" placeholder="Search" aria-label="Search the menu" autocomplete="off"></div>
 <nav aria-label="Design system">
 <ul class="main-nav">${VIEWS.map(navItem).join("")}</ul>
@@ -544,7 +552,7 @@ ${compViews}
 ${view(
 	"logo",
 	"Logo",
-	"The round table. Ten seats sit around one table, in the colours of the squad mascots. The white centre is the owner: the squad works around the owner. The logo is not a mascot. Petra is an agent, not the brand.",
+	"The wordmark: a coral figure, a ring and the name tensquads. The figure and the ring also form the square mark for icons. The logo is not a mascot. Petra is an agent, not the brand.",
 	logoView,
 )}
 ${view(
