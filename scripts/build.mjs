@@ -558,7 +558,7 @@ ${view(
 ${view(
 	"mascots",
 	"Mascots",
-	"One clay toy character for each agent. Each body takes its shape from the place the agent is named after. Every mascot has the same soft clay light, big round eyes, a round nose and worn brown boots. Each mascot comes as SVG, PNG with a clear background and JPEG with a white background.",
+	"One clay toy character for each agent. Each body takes its shape from the place the agent is named after. Every mascot has the same soft studio light, big glossy brown eyes, a round nose and scuffed lace-up boots. Each mascot comes as SVG, PNG with a clear background and JPEG with a white background.",
 	`<div class="mascots">${cards}</div>`,
 )}
 ${view("states", "Mascot states", "Each mascot in each Agent loop state. The eyes show what the agent is doing now. A badge shows the states a person must see.", stateView)}
