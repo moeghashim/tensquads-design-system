@@ -90,12 +90,14 @@ const hand = (c: Palette, x: number, y: number, r = 12) =>
 	`${circle(x, y, r, c.limb, 3.5)}<path d="M${x - r * 0.45} ${y - r * 0.15} Q${x - r * 0.1} ${y + r * 0.35} ${x + r * 0.35} ${y + r * 0.1}" fill="none" stroke="${OUTLINE}" stroke-width="2" stroke-linecap="round" opacity=".5"/>`;
 // An open hand that waves: a palm and four fingers.
 const wave = (c: Palette, x: number, y: number) => {
-	const fingers = [
-		[-11, -10, -17, -27],
-		[-4, -13, -5, -32],
-		[4, -13, 7, -31],
-		[11, -9, 18, -24],
-	]
+	const fingers = (
+		[
+			[-11, -10, -17, -27],
+			[-4, -13, -5, -32],
+			[4, -13, 7, -31],
+			[11, -9, 18, -24],
+		] as const
+	)
 		.map(([a, b, d, e]) => `M${x + a} ${y + b} L${x + d} ${y + e}`)
 		.join(" ");
 	const thumb = `M${x - 13} ${y + 2} L${x - 25} ${y - 6}`;
@@ -124,9 +126,7 @@ export const DRAW: Record<string, Draw> = {
 	master: (k, c, f) => {
 		const d = "M86 304 L86 150 A64 64 0 0 1 214 150 L214 304 Q214 314 204 314 L96 314 Q86 314 86 304 Z";
 		const niche = "M104 304 L104 160 A46 46 0 0 1 196 160 L196 304 Z";
-		const columns = [106, 184]
-			.map((x) => rect(x, 182, 10, 118, c.light, 2, 2.5))
-			.join("");
+		const columns = [106, 184].map((x) => rect(x, 182, 10, 118, c.light, 2, 2.5)).join("");
 		return `${legs(c, 124, 176, 306)}
 ${arm(c, "M212 228 Q238 250 232 280")}${hand(c, 232, 284)}
 ${rect(143, 80, 14, 16, c.base, 3, 3.5)}${circle(150, 70, 13, c.base)}
@@ -140,10 +140,17 @@ ${arm(c, "M90 222 Q62 210 58 174")}${wave(c, 56, 164)}`;
 
 	// Pisa: a leaning tower of arcades with a bell top. Carries a parcel.
 	orders: (k, c, f) => {
-		const d = "M100 300 L100 96 Q100 84 112 84 L188 84 Q200 84 200 96 L200 300 Q200 310 190 310 L110 310 Q100 310 100 300 Z";
+		const d =
+			"M100 300 L100 96 Q100 84 112 84 L188 84 Q200 84 200 96 L200 300 Q200 310 190 310 L110 310 Q100 310 100 300 Z";
 		const arcade = (y: number) =>
 			[112, 132, 152, 172]
-				.map((x) => flat(`M${x} ${y + 26} L${x} ${y + 9} A8 8 0 0 1 ${x + 16} ${y + 9} L${x + 16} ${y + 26} Z`, c.deep, 0.55))
+				.map((x) =>
+					flat(
+						`M${x} ${y + 26} L${x} ${y + 9} A8 8 0 0 1 ${x + 16} ${y + 9} L${x + 16} ${y + 26} Z`,
+						c.deep,
+						0.55,
+					),
+				)
 				.join("");
 		const band = (y: number) => rect(94, y, 112, 9, c.light, 4, 3);
 		return `${legs(c, 128, 176, 300)}
@@ -163,9 +170,7 @@ ${arm(c, "M196 222 Q214 232 214 246")}${hand(c, 214, 248)}${hand(c, 262, 240, 11
 	// Kyoto: a paper lantern with ribs, two wooden caps and a warm glow. Listens on a headset.
 	support: (k, c, f) => {
 		const d = "M150 96 C216 96 236 150 236 190 C236 236 214 284 150 284 C86 284 64 236 64 190 C64 150 84 96 150 96 Z";
-		const ribs = [128, 154, 246, 268]
-			.map((y) => `M60 ${y} Q150 ${y + (y < 190 ? -10 : 10)} 240 ${y}`)
-			.join(" ");
+		const ribs = [128, 154, 246, 268].map((y) => `M60 ${y} Q150 ${y + (y < 190 ? -10 : 10)} 240 ${y}`).join(" ");
 		return `${legs(c, 126, 174, 290)}
 ${arm(c, "M70 214 Q46 236 52 266")}${hand(c, 52, 270)}
 <path d="M124 92 Q124 54 150 54 Q176 54 176 92" fill="none" stroke="${OUTLINE}" stroke-width="13" stroke-linecap="round"/><path d="M124 92 Q124 54 150 54 Q176 54 176 92" fill="none" stroke="#6A3420" stroke-width="7" stroke-linecap="round"/>
@@ -183,7 +188,8 @@ ${hand(c, 250, 180, 12)}`;
 	// Rio: a tall rounded rock, like Sugarloaf Mountain, with moss at its foot. Calls out on a megaphone.
 	marketing: (k, c, f) => {
 		const d = "M80 300 Q66 190 108 116 Q150 52 192 116 Q234 190 220 300 Q150 314 80 300 Z";
-		const moss = "M70 300 Q80 282 94 292 Q104 278 120 290 Q132 278 148 290 Q162 278 176 290 Q190 278 204 292 Q218 282 230 300 Q150 318 70 300 Z";
+		const moss =
+			"M70 300 Q80 282 94 292 Q104 278 120 290 Q132 278 148 290 Q162 278 176 290 Q190 278 204 292 Q218 282 230 300 Q150 318 70 300 Z";
 		return `${legs(c, 124, 176, 300)}
 ${arm(c, "M216 226 Q242 248 236 278")}${hand(c, 236, 282)}
 ${body(k, c, d, line("M120 132 L110 168 M190 150 L204 196 M96 236 L106 262 M178 248 L190 276", c.deep, 3))}
@@ -330,8 +336,7 @@ ${line("M64 160 Q52 176 50 196", OUTLINE, 2)}<path d="M38 196 L62 196 L62 228 L5
 
 	// Venice: a humped bridge with a centre arch, a small portico and shop windows. Holds a gondola oar.
 	channels: (k, c, f) => {
-		const d =
-			"M34 298 L34 240 Q74 150 150 134 Q226 150 266 240 L266 298 L222 298 Q216 244 150 238 Q84 244 78 298 Z";
+		const d = "M34 298 L34 240 Q74 150 150 134 Q226 150 266 240 L266 298 L222 298 Q216 244 150 238 Q84 244 78 298 Z";
 		const shops = [62, 86, 192, 216]
 			.map((x, i) => {
 				const y = i < 2 ? 214 - i * 18 : 196 + (i - 2) * 18;
