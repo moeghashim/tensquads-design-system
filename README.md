@@ -11,6 +11,7 @@ This repository is the reference for how tensquads looks, and the single source 
 | `index.html` | The design system page. It is the same page as <https://10squads.com/design>. |
 | `logo/` | The tensquads logo: the wordmark (SVG and PNG, for light and dark backgrounds) and the square mark (SVG, PNG at 512 px, the favicon and the Apple touch icon). Built from `scripts/logo-source.svg` by `scripts/logo.mjs`. |
 | `mascots/svg/` | One SVG for each agent. The vector source. |
+| `mascots/art/2d/`, `mascots/art/3d/` | The reference art for each agent, 1024 × 1024 px: the 2D illustration (PNG) the SVG drawings follow, and the 3D figurine render (JPEG). They are pictures, not sources: the SVG drawings in `scripts/squadmates/mascots.ts` are the source. |
 | `mascots/png/` | One PNG for each agent, 1200 × 1480 px, with a clear background. |
 | `mascots/jpeg/` | One JPEG for each agent, 1200 × 1480 px, with a white background. |
 | `mascots/cards/png/`, `mascots/cards/jpeg/` | One card for each agent, 1200 px wide: the mascot, name, role, palette, shape, reason, pose and colour. |
@@ -26,7 +27,7 @@ This repository is the reference for how tensquads looks, and the single source 
 | `screens/` | The product screens from the design canvas, file for file: one `.dc.html` per screen, `canvas.json` and `MANIFEST.json`. `support.js` is a small runtime that draws them in a browser. They started as a copy of the canvas. Since 11 November 2026 they are edited here, and `MANIFEST.json` holds the hash of each approved file. |
 | `screens/inventory/` | The texts, styles, handlers and loops of each screen. Built by `scripts/design-inventory.mjs`. |
 | `pages/` | The approved designs for pages outside the app: the homepage and the squadmates sidebar, with screenshots. |
-| `scripts/` | The mascot drawings (`mascots.mjs`), the script that builds every generated file (`build.mjs`), `design-check.mjs` and `design-inventory.mjs`. |
+| `scripts/` | The mascot names and texts (`mascots.mjs`), the script that builds every generated file (`build.mjs`), `design-check.mjs` and `design-inventory.mjs`. |
 | `scripts/squadmates/` | The app's avatar code: the mascots with the Agent loop states. The app package `@tensquads/squadmates` uses the same code. |
 | `worker/`, `wrangler.jsonc` | The Cloudflare Worker that serves this repository at 10squads.com/design. |
 
@@ -38,7 +39,7 @@ The source face is not shipped. Inter replaces it at the same sizes. Code uses J
 
 ## Mascots
 
-Each agent has one frosted toy. Each body takes its shape from the place the agent is named after. Every mascot wears one lens over its right eye. The lens is the squad's mark.
+Each agent has one flat 2D character. Each body takes its shape from the place the agent is named after. Every mascot has the same warm dark outline, flat fills in two or three tones, big round eyes, a round nose and worn brown boots. No mascot wears glasses.
 
 | Mascot | Role | Named after | Shape | Pose | Colour |
 |---|---|---|---|---|---|
@@ -62,7 +63,7 @@ The exact colours are in `mascots/mascots.json`.
 
 - Use the files here. Do not redraw a mascot by hand.
 - The logo is the wordmark, not a mascot. Use `logo/wordmark.svg` on light backgrounds and `logo/wordmark-dark.svg` on dark ones. Use the square mark (`logo/logo.svg`, `logo/logo-dark.svg`) only where a square is needed, such as an icon.
-- Do not change the shape, the colour or the lens of a mascot. A change is made in `scripts/mascots.mjs`, and then every file is built again.
+- Do not change the shape, the colour or the face of a mascot. A change is made in `scripts/squadmates/mascots.ts`, and then every file is built again.
 - Do not edit `agent-ui/tokens.css`, `agent-ui/previews/` or `index.html` by hand. Change the source, then build again.
 - Show a mascot on a light surface. The PNG has a clear background. The JPEG has a white one.
 

@@ -1,4 +1,4 @@
-import { BUST, DRAW, defs, type Face, INK, lens, PALETTES, shadow } from "./mascots.ts";
+import { BUST, DRAW, defs, type Face, INK, IRIS, OUTLINE, PALETTES, shadow } from "./mascots.ts";
 import { AGENT_LOOP_STATES, type AgentLoopState, SQUADMATES, type Squadmate } from "./roster.ts";
 
 export type SquadmateDrawState = AgentLoopState | "idle";
@@ -26,40 +26,76 @@ export class UnknownSquadmateStateError extends Error {
 	}
 }
 
-// ---- Eyes for each state, in the 300 x 370 drawing. The lens always covers the right eye. ----
-const bead = (x: number, y: number, r = 7) =>
-	`<circle cx="${x}" cy="${y}" r="${r}" fill="${INK}"/><circle cx="${x - r * 0.35}" cy="${y - r * 0.35}" r="${r * 0.3}" fill="#fff" opacity=".9"/>`;
-const lid = (x: number, y: number) => `<ellipse cx="${x}" cy="${y + 1}" rx="7.5" ry="3.2" fill="${INK}"/>`;
-const bar = (x: number, y: number) =>
-	`<rect x="${x - 8}" y="${y - 2.5}" width="16" height="5" rx="2.5" fill="${INK}"/>`;
-const arc = (x: number, y: number, up: boolean) =>
-	`<path d="M${x - 8} ${y + (up ? 3 : -3)} Q${x} ${y + (up ? -7 : 7)} ${x + 8} ${y + (up ? 3 : -3)}" fill="none" stroke="${INK}" stroke-width="4.5" stroke-linecap="round"/>`;
+// ---- Eyes for each state, in the 300 x 370 drawing. Big round eyes with a brown iris. No glasses. ----
+const r1 = (n: number) => Number(n.toFixed(1));
+// An open eye. dx and dy move the iris; scale grows or shrinks it.
+const eye = (x: number, y: number, s: number, dx = 0, dy = 0, iris = 1) => {
+	const ix = r1(x + dx * s);
+	const iy = r1(y + dy * s);
+	return `<ellipse cx="${x}" cy="${y}" rx="${r1(s * 0.84)}" ry="${s}" fill="#fff" stroke="${OUTLINE}" stroke-width="3"/><circle cx="${ix}" cy="${iy}" r="${r1(s * 0.62 * iris)}" fill="${IRIS}"/><circle cx="${ix}" cy="${iy}" r="${r1(s * 0.34 * iris)}" fill="${INK}"/><circle cx="${r1(ix - s * 0.2)}" cy="${r1(iy - s * 0.24)}" r="${r1(s * 0.18)}" fill="#fff"/>`;
+};
+// A closed eye: an arc. Up is a happy eye, down is asleep.
+const shut = (x: number, y: number, s: number, up: boolean) =>
+	`<path d="M${r1(x - s * 0.8)} ${r1(y + (up ? s * 0.25 : -s * 0.1))} Q${x} ${r1(y + (up ? -s * 0.75 : s * 0.65))} ${r1(x + s * 0.8)} ${r1(y + (up ? s * 0.25 : -s * 0.1))}" fill="none" stroke="${OUTLINE}" stroke-width="4" stroke-linecap="round"/>`;
+const bar = (x: number, y: number, s: number) =>
+	`<path d="M${r1(x - s * 0.75)} ${y} L${r1(x + s * 0.75)} ${y}" stroke="${OUTLINE}" stroke-width="4.5" stroke-linecap="round"/>`;
+// A half-closed eye: the lid covers the top half.
+const lidded = (x: number, y: number, s: number) =>
+	`<path d="M${r1(x - s * 0.84)} ${y} A${r1(s * 0.84)} ${s} 0 0 0 ${r1(x + s * 0.84)} ${y} Z" fill="#fff" stroke="${OUTLINE}" stroke-width="3" stroke-linejoin="round"/><path d="M${r1(x - s * 0.5)} ${y} A${r1(s * 0.5)} ${r1(s * 0.5)} 0 0 0 ${r1(x + s * 0.5)} ${y} Z" fill="${IRIS}"/><path d="M${r1(x - s * 0.95)} ${y} L${r1(x + s * 0.95)} ${y}" stroke="${OUTLINE}" stroke-width="4" stroke-linecap="round"/>`;
+// A brow over each eye. tilt > 0 lifts the inner end (worried); tilt < 0 drops it (focused).
+const brows = (l: number, r: number, y: number, s: number, lift = 0, tilt = 0) => {
+	const by = r1(y - s * 1.45 - lift);
+	const one = (x: number, inner: 1 | -1) => {
+		const xi = r1(x + inner * s * 0.7);
+		const xo = r1(x - inner * s * 0.7);
+		return `M${xo} ${by} Q${x} ${r1(by - s * 0.35)} ${xi} ${r1(by - tilt)}`;
+	};
+	return `<path d="${one(l, 1)} ${one(r, -1)}" fill="none" stroke="${OUTLINE}" stroke-width="4" stroke-linecap="round"/>`;
+};
 
-const EYES: Record<SquadmateDrawState, (l: number, r: number, y: number) => string> = {
-	idle: (l, r, y) => bead(l, y) + bead(r, y),
-	waiting: (l, r, y) => lid(l, y) + lid(r, y),
-	planning: (l, r, y) => bead(l + 2, y - 5) + bead(r + 2, y - 5),
-	running: (l, r, y) => bead(l + 4, y, 6.5) + bead(r + 4, y, 6.5),
-	checking: (l, r, y) => bead(l, y) + bar(r, y),
-	done: (l, r, y) => arc(l, y, true) + arc(r, y, true),
-	sentback: (l, r, y) => bead(l - 2, y + 5, 6) + bead(r - 2, y + 5, 6),
-	blocked: (l, r, y) => bar(l, y) + bar(r, y),
-	escalated: (l, r, y) => bead(l, y, 9) + bead(r, y, 9),
-	dropped: (l, r, y) => arc(l, y, false) + arc(r, y, false),
+const EYES: Record<SquadmateDrawState, (l: number, r: number, y: number, s: number) => string> = {
+	idle: (l, r, y, s) => eye(l, y, s) + eye(r, y, s),
+	waiting: (l, r, y, s) => lidded(l, y, s) + lidded(r, y, s),
+	planning: (l, r, y, s) => eye(l, y, s, -0.18, -0.3) + eye(r, y, s, -0.18, -0.3),
+	running: (l, r, y, s) => eye(l, y, s, 0.24, 0.05, 0.9) + eye(r, y, s, 0.24, 0.05, 0.9),
+	checking: (l, r, y, s) => eye(l, y, s) + bar(r, y, s),
+	done: (l, r, y, s) => shut(l, y, s, true) + shut(r, y, s, true),
+	sentback: (l, r, y, s) => eye(l, y, s, 0, 0.3) + eye(r, y, s, 0, 0.3),
+	blocked: (l, r, y, s) => bar(l, y, s) + bar(r, y, s),
+	escalated: (l, r, y, s) => eye(l, y, s * 1.15, 0, 0, 0.62) + eye(r, y, s * 1.15, 0, 0, 0.62),
+	dropped: (l, r, y, s) => shut(l, y, s, false) + shut(r, y, s, false),
+};
+
+const BROWS: Record<SquadmateDrawState, [number, number]> = {
+	idle: [0, 0],
+	waiting: [-2, 0],
+	planning: [3, 0],
+	running: [0, -4],
+	checking: [0, -3],
+	done: [2, 0],
+	sentback: [0, 5],
+	blocked: [-1, -5],
+	escalated: [6, 4],
+	dropped: [-3, 0],
 };
 
 const FLAT = new Set<SquadmateDrawState>(["sentback", "blocked", "dropped"]);
 
-function face(k: string, state: SquadmateDrawState): Face {
+function face(_k: string, state: SquadmateDrawState): Face {
 	const blink = state === "waiting" || state === "idle" ? ' class="sm-blink"' : "";
 	return {
-		eyes: (l, r, y, size) => `<g${blink}>${EYES[state](l, r, y)}</g>${lens(k, r, y, size)}`,
+		eyes: (l, r, y, size) => {
+			const s = r1(size * 1.25);
+			return `<g${blink}>${EYES[state](l, r, y, s)}</g>${brows(l, r, y, s, ...BROWS[state])}`;
+		},
 		mouth: (x, y, kind = "smile") => {
-			if (kind === "o" || state === "escalated")
-				return `<ellipse cx="${x}" cy="${y}" rx="${kind === "o" ? 9 : 6}" ry="${kind === "o" ? 6 : 7}" fill="${INK}" opacity=".75"/>`;
+			if (kind === "o" || state === "escalated") {
+				const big = kind === "o" && state !== "escalated";
+				return `<ellipse cx="${x}" cy="${y}" rx="${big ? 12 : 7}" ry="${big ? 10 : 8}" fill="#8E3B2E" stroke="${OUTLINE}" stroke-width="3"/><ellipse cx="${x}" cy="${y + (big ? 4 : 3)}" rx="${big ? 6 : 3.5}" ry="${big ? 3.5 : 2.5}" fill="#E58A86"/>`;
+			}
 			if (FLAT.has(state))
-				return `<path d="M${x - 8} ${y + 3} L${x + 8} ${y + 3}" stroke="${INK}" stroke-width="3" stroke-linecap="round" opacity=".7"/>`;
-			return `<path d="M${x - 10} ${y} Q${x} ${y + 8} ${x + 10} ${y}" fill="none" stroke="${INK}" stroke-width="3" stroke-linecap="round" opacity=".7"/>`;
+				return `<path d="M${x - 9} ${y + 2} Q${x} ${y - 1} ${x + 9} ${y + 2}" fill="none" stroke="${OUTLINE}" stroke-width="3.5" stroke-linecap="round"/>`;
+			return `<path d="M${x - 14} ${y - 2} Q${x} ${y - 4} ${x + 14} ${y - 2} Q${x + 12} ${y + 14} ${x} ${y + 14} Q${x - 12} ${y + 14} ${x - 14} ${y - 2} Z" fill="#8E3B2E" stroke="${OUTLINE}" stroke-width="3" stroke-linejoin="round"/><path d="M${x - 7} ${y + 10} Q${x} ${y + 4} ${x + 7} ${y + 10} Q${x} ${y + 14} ${x - 7} ${y + 10} Z" fill="#E58A86"/>`;
 		},
 	};
 }
@@ -107,4 +143,14 @@ export function squadmateMarkup(imageId: string, state: string, size: number): s
 	if (mate == null) throw new UnknownSquadmateError(imageId);
 	if (!DRAW_STATES.has(state)) throw new UnknownSquadmateStateError(state);
 	return avatar(mate, state as SquadmateDrawState, size);
+}
+
+// The whole mascot with its idle face, in the 300 x 370 drawing, for the cards, the PNG files and the lineup.
+export function mascotDrawing(imageId: string, k: string): string {
+	const mate = BY_ID.get(imageId);
+	if (mate == null) throw new UnknownSquadmateError(imageId);
+	const palette = PALETTES[mate.id];
+	const draw = DRAW[mate.id];
+	if (palette == null || draw == null) throw new UnknownSquadmateError(mate.id);
+	return `${defs(k, palette)}${shadow(k)}${draw(k, palette, face(k, "idle"))}`;
 }

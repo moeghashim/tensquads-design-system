@@ -558,7 +558,7 @@ ${view(
 ${view(
 	"mascots",
 	"Mascots",
-	"One frosted toy for each agent. Each body takes its shape from the place the agent is named after. Every mascot wears one lens over its right eye. The lens is the squad's mark. Each mascot comes as SVG, PNG with a clear background and JPEG with a white background.",
+	"One flat 2D character for each agent. Each body takes its shape from the place the agent is named after. Every mascot has the same outline, big round eyes, a round nose and worn brown boots. Each mascot comes as SVG, PNG with a clear background and JPEG with a white background.",
 	`<div class="mascots">${cards}</div>`,
 )}
 ${view("states", "Mascot states", "Each mascot in each Agent loop state. The eyes show what the agent is doing now. A badge shows the states a person must see.", stateView)}
