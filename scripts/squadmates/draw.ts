@@ -1,4 +1,7 @@
-import { BUST, DRAW, defs, type Face, INK, IRIS, OUTLINE, PALETTES, shadow } from "./mascots.ts";
+import { BUST, clay, DRAW, defs, type Face, INK, IRIS, OUTLINE, PALETTES, shadow } from "./mascots.ts";
+
+// The face lines stay crisp over the clay: brows, closed eyes and the mouth.
+const FACE_LINE = "#2A1810";
 import { AGENT_LOOP_STATES, type AgentLoopState, SQUADMATES, type Squadmate } from "./roster.ts";
 
 export type SquadmateDrawState = AgentLoopState | "idle";
@@ -36,12 +39,12 @@ const eye = (x: number, y: number, s: number, dx = 0, dy = 0, iris = 1) => {
 };
 // A closed eye: an arc. Up is a happy eye, down is asleep.
 const shut = (x: number, y: number, s: number, up: boolean) =>
-	`<path d="M${r1(x - s * 0.8)} ${r1(y + (up ? s * 0.25 : -s * 0.1))} Q${x} ${r1(y + (up ? -s * 0.75 : s * 0.65))} ${r1(x + s * 0.8)} ${r1(y + (up ? s * 0.25 : -s * 0.1))}" fill="none" stroke="${OUTLINE}" stroke-width="4" stroke-linecap="round"/>`;
+	`<path d="M${r1(x - s * 0.8)} ${r1(y + (up ? s * 0.25 : -s * 0.1))} Q${x} ${r1(y + (up ? -s * 0.75 : s * 0.65))} ${r1(x + s * 0.8)} ${r1(y + (up ? s * 0.25 : -s * 0.1))}" fill="none" stroke="${FACE_LINE}" stroke-width="4" stroke-linecap="round"/>`;
 const bar = (x: number, y: number, s: number) =>
-	`<path d="M${r1(x - s * 0.75)} ${y} L${r1(x + s * 0.75)} ${y}" stroke="${OUTLINE}" stroke-width="4.5" stroke-linecap="round"/>`;
+	`<path d="M${r1(x - s * 0.75)} ${y} L${r1(x + s * 0.75)} ${y}" stroke="${FACE_LINE}" stroke-width="4.5" stroke-linecap="round"/>`;
 // A half-closed eye: the lid covers the top half.
 const lidded = (x: number, y: number, s: number) =>
-	`<path d="M${r1(x - s * 0.84)} ${y} A${r1(s * 0.84)} ${s} 0 0 0 ${r1(x + s * 0.84)} ${y} Z" fill="#fff" stroke="${OUTLINE}" stroke-width="3" stroke-linejoin="round"/><path d="M${r1(x - s * 0.5)} ${y} A${r1(s * 0.5)} ${r1(s * 0.5)} 0 0 0 ${r1(x + s * 0.5)} ${y} Z" fill="${IRIS}"/><path d="M${r1(x - s * 0.95)} ${y} L${r1(x + s * 0.95)} ${y}" stroke="${OUTLINE}" stroke-width="4" stroke-linecap="round"/>`;
+	`<path d="M${r1(x - s * 0.84)} ${y} A${r1(s * 0.84)} ${s} 0 0 0 ${r1(x + s * 0.84)} ${y} Z" fill="#fff" stroke="${OUTLINE}" stroke-width="3" stroke-linejoin="round"/><path d="M${r1(x - s * 0.5)} ${y} A${r1(s * 0.5)} ${r1(s * 0.5)} 0 0 0 ${r1(x + s * 0.5)} ${y} Z" fill="${IRIS}"/><path d="M${r1(x - s * 0.95)} ${y} L${r1(x + s * 0.95)} ${y}" stroke="${FACE_LINE}" stroke-width="4" stroke-linecap="round"/>`;
 // A brow over each eye. tilt > 0 lifts the inner end (worried); tilt < 0 drops it (focused).
 const brows = (l: number, r: number, y: number, s: number, lift = 0, tilt = 0) => {
 	const by = r1(y - s * 1.45 - lift);
@@ -50,7 +53,7 @@ const brows = (l: number, r: number, y: number, s: number, lift = 0, tilt = 0) =
 		const xo = r1(x - inner * s * 0.7);
 		return `M${xo} ${by} Q${x} ${r1(by - s * 0.35)} ${xi} ${r1(by - tilt)}`;
 	};
-	return `<path d="${one(l, 1)} ${one(r, -1)}" fill="none" stroke="${OUTLINE}" stroke-width="4" stroke-linecap="round"/>`;
+	return `<path d="${one(l, 1)} ${one(r, -1)}" fill="none" stroke="${FACE_LINE}" stroke-width="4" stroke-linecap="round"/>`;
 };
 
 const EYES: Record<SquadmateDrawState, (l: number, r: number, y: number, s: number) => string> = {
@@ -91,11 +94,11 @@ function face(_k: string, state: SquadmateDrawState): Face {
 		mouth: (x, y, kind = "smile") => {
 			if (kind === "o" || state === "escalated") {
 				const big = kind === "o" && state !== "escalated";
-				return `<ellipse cx="${x}" cy="${y}" rx="${big ? 12 : 7}" ry="${big ? 10 : 8}" fill="#8E3B2E" stroke="${OUTLINE}" stroke-width="3"/><ellipse cx="${x}" cy="${y + (big ? 4 : 3)}" rx="${big ? 6 : 3.5}" ry="${big ? 3.5 : 2.5}" fill="#E58A86"/>`;
+				return `<ellipse cx="${x}" cy="${y}" rx="${big ? 12 : 7}" ry="${big ? 10 : 8}" fill="#8E3B2E" stroke="${FACE_LINE}" stroke-width="3"/><ellipse cx="${x}" cy="${y + (big ? 4 : 3)}" rx="${big ? 6 : 3.5}" ry="${big ? 3.5 : 2.5}" fill="#E58A86"/>`;
 			}
 			if (FLAT.has(state))
-				return `<path d="M${x - 9} ${y + 2} Q${x} ${y - 1} ${x + 9} ${y + 2}" fill="none" stroke="${OUTLINE}" stroke-width="3.5" stroke-linecap="round"/>`;
-			return `<path d="M${x - 14} ${y - 2} Q${x} ${y - 4} ${x + 14} ${y - 2} Q${x + 12} ${y + 14} ${x} ${y + 14} Q${x - 12} ${y + 14} ${x - 14} ${y - 2} Z" fill="#8E3B2E" stroke="${OUTLINE}" stroke-width="3" stroke-linejoin="round"/><path d="M${x - 7} ${y + 10} Q${x} ${y + 4} ${x + 7} ${y + 10} Q${x} ${y + 14} ${x - 7} ${y + 10} Z" fill="#E58A86"/>`;
+				return `<path d="M${x - 9} ${y + 2} Q${x} ${y - 1} ${x + 9} ${y + 2}" fill="none" stroke="${FACE_LINE}" stroke-width="3.5" stroke-linecap="round"/>`;
+			return `<path d="M${x - 14} ${y - 2} Q${x} ${y - 4} ${x + 14} ${y - 2} Q${x + 12} ${y + 14} ${x} ${y + 14} Q${x - 12} ${y + 14} ${x - 14} ${y - 2} Z" fill="#8E3B2E" stroke="${FACE_LINE}" stroke-width="3" stroke-linejoin="round"/><path d="M${x - 7} ${y + 10} Q${x} ${y + 4} ${x + 7} ${y + 10} Q${x} ${y + 14} ${x - 7} ${y + 10} Z" fill="#E58A86"/>`;
 		},
 	};
 }
@@ -127,7 +130,7 @@ function avatar(mate: Squadmate, state: SquadmateDrawState, size: number): strin
 	const [x, y, side] = full ? [-35, 0, 370] : bust;
 	const scale = Number((64 / side).toFixed(5));
 	return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="${size}" height="${size}" role="img" aria-label="${mate.name}, ${mate.role}${state === "idle" ? "" : `, ${state}`}">
-${defs(k, palette)}<g transform="scale(${scale}) translate(${-x} ${-y})">${full ? shadow(k) : ""}${draw(k, palette, face(k, state))}</g>
+${defs(k, palette)}<g transform="scale(${scale}) translate(${-x} ${-y})">${full ? shadow(k) : ""}${clay(k, draw(k, palette, face(k, state)))}</g>
 ${badge(state)}
 </svg>`;
 }
@@ -152,5 +155,5 @@ export function mascotDrawing(imageId: string, k: string): string {
 	const palette = PALETTES[mate.id];
 	const draw = DRAW[mate.id];
 	if (palette == null || draw == null) throw new UnknownSquadmateError(mate.id);
-	return `${defs(k, palette)}${shadow(k)}${draw(k, palette, face(k, "idle"))}`;
+	return `${defs(k, palette)}${shadow(k)}${clay(k, draw(k, palette, face(k, "idle")))}`;
 }
