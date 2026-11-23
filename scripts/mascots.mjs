@@ -1,6 +1,6 @@
 import { mascotDrawing } from "./squadmates/index.ts";
 
-// Thirteen squad mascots. Flat 2D characters. Each body comes from the place the agent is named after.
+// Thirteen squad mascots. Clay toy characters. Each body comes from the place the agent is named after.
 // The drawings are in scripts/squadmates/mascots.ts, the same code the app uses.
 export const MASCOTS = [
   { id: "master", name: "Petra", role: "Master", place: "Petra, Jordan", colour: "Rose sandstone",

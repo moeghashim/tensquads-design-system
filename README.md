@@ -11,7 +11,7 @@ This repository is the reference for how tensquads looks, and the single source 
 | `index.html` | The design system page. It is the same page as <https://10squads.com/design>. |
 | `logo/` | The tensquads logo: the wordmark (SVG and PNG, for light and dark backgrounds) and the square mark (SVG, PNG at 512 px, the favicon and the Apple touch icon). Built from `scripts/logo-source.svg` by `scripts/logo.mjs`. |
 | `mascots/svg/` | One SVG for each agent. The vector source. |
-| `mascots/art/2d/`, `mascots/art/3d/` | The reference art for each agent, 1024 × 1024 px: the 2D illustration (PNG) the SVG drawings follow, and the 3D figurine render (JPEG). They are pictures, not sources: the SVG drawings in `scripts/squadmates/mascots.ts` are the source. |
+| `mascots/art/3d/` | The 3D reference render of each agent (JPEG, 1024 × 1024 px). It is a picture, not a source: the SVG drawings in `scripts/squadmates/mascots.ts` are the source. |
 | `mascots/png/` | One PNG for each agent, 1200 × 1480 px, with a clear background. |
 | `mascots/jpeg/` | One JPEG for each agent, 1200 × 1480 px, with a white background. |
 | `mascots/cards/png/`, `mascots/cards/jpeg/` | One card for each agent, 1200 px wide: the mascot, name, role, palette, shape, reason, pose and colour. |
@@ -39,7 +39,7 @@ The source face is not shipped. Inter replaces it at the same sizes. Code uses J
 
 ## Mascots
 
-Each agent has one flat 2D character. Each body takes its shape from the place the agent is named after. Every mascot has the same warm dark outline, flat fills in two or three tones, big round eyes, a round nose and worn brown boots. No mascot wears glasses.
+Each agent has one clay toy character. Each body takes its shape from the place the agent is named after. Every mascot has the same soft clay light, big round eyes, a round nose and worn brown boots. No mascot wears glasses. The SVG drawings make the clay light with an SVG filter, so each file stays small.
 
 | Mascot | Role | Named after | Shape | Pose | Colour |
 |---|---|---|---|---|---|

@@ -1,6 +1,6 @@
-// The thirteen squad mascots. Flat 2D characters, one for each agent. Each body takes its shape
-// from the place the agent is named after. Every mascot has a warm dark outline, flat fills in
-// two or three tones, big round eyes, a round nose and worn brown boots.
+// The thirteen squad mascots. Clay toy characters, one for each agent. Each body takes its shape
+// from the place the agent is named after. Every mascot has the same soft clay light, big round
+// eyes, a round nose and worn brown boots. The light is an SVG filter, so the drawing stays small.
 // The source is github.com/moeghashim/tensquads-design-system (scripts/squadmates/mascots.ts).
 // The eyes and the mouth come from a Face, so the avatar can show an Agent loop state.
 
@@ -56,8 +56,29 @@ const LACE = "#E2B07A";
 const WOOD = "#9A5E34";
 const GOLD = "#F2C14E";
 
+// The clay light: light from the top left, a soft highlight and shading from each shape's own edge.
+// `blur` sets how round a shape looks; tubes (arms, legs, handles) use a smaller one.
+const light = (id: string, blur: number, depth: number) =>
+	`<filter id="${id}" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="${blur}" result="b"/><feDiffuseLighting in="b" surfaceScale="${depth}" diffuseConstant="1.15" lighting-color="#fff" result="d"><feDistantLight azimuth="235" elevation="48"/></feDiffuseLighting><feComposite in="d" in2="SourceAlpha" operator="in" result="d2"/><feBlend in="SourceGraphic" in2="d2" mode="multiply" result="m"/><feSpecularLighting in="b" surfaceScale="${depth}" specularConstant=".55" specularExponent="22" lighting-color="#fff" result="s"><fePointLight x="40" y="20" z="260"/></feSpecularLighting><feComposite in="s" in2="SourceAlpha" operator="in" result="s2"/><feComposite in="m" in2="s2" operator="arithmetic" k2="1" k3=".85" result="lit"/><feComposite in="lit" in2="SourceAlpha" operator="in"/></filter>`;
+
 export function defs(k: string, _c: Palette): string {
-	return `<defs><filter id="${k}s" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter></defs>`;
+	return `<defs><filter id="${k}s" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter>${light(`${k}clay`, 7, 6)}${light(`${k}tube`, 3, 4)}</defs>`;
+}
+
+// Turns a drawing into clay: the outlines fade to a soft dark edge, filled shapes take the clay
+// light and tubes take the tube light. Fine lines (2.5 or less) stay flat, and so does a shape
+// that has a filter already.
+export function clay(k: string, markup: string): string {
+	return markup
+		.replaceAll(`stroke="${OUTLINE}"`, `stroke="${OUTLINE}" stroke-opacity=".22"`)
+		.replace(/<(path|rect|circle|ellipse)\b([^>]*?)fill="(#[0-9A-Fa-f]{3,6})"([^>]*?)\/>/g, (m, tag: string, a: string, fill: string, b: string) => {
+			if (/filter=/.test(a + b)) return m;
+			if (tag !== "ellipse" && /stroke-width="(1\.5|2|2\.5)"/.test(a + b)) return m;
+			return `<${tag}${a}fill="${fill}"${b} filter="url(#${k}clay)"/>`;
+		})
+		.replace(/<path([^>]*?)fill="none"([^>]*?)stroke-width="(1[0-9]|[6-9](\.5)?)"([^>]*?)\/>/g, (m) =>
+			/filter=/.test(m) ? m : m.replace("/>", ` filter="url(#${k}tube)"/>`),
+		);
 }
 
 export const shadow = (k: string) =>
