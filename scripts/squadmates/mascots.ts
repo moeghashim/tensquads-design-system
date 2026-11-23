@@ -1,17 +1,23 @@
 // The thirteen squad mascots. Clay toy characters, one for each agent. Each body takes its shape
-// from the place the agent is named after. Every mascot has the same soft clay light, big round
-// eyes, a round nose and worn brown boots. The light is an SVG filter, so the drawing stays small.
-// The source is github.com/moeghashim/tensquads-design-system (scripts/squadmates/mascots.ts).
-// The eyes and the mouth come from a Face, so the avatar can show an Agent loop state.
+// from the place the agent is named after. Every mascot has soft studio light, big glossy brown
+// eyes, a round nose, an open smile, stout hands and scuffed lace-up boots. No glasses.
+// Designed by GPT-6.2 Sol. The source is github.com/moeghashim/tensquads-design-system
+// (scripts/squadmates/mascots.ts). The face is drawn for each Agent loop state.
 
 export type Palette = { readonly light: string; readonly base: string; readonly deep: string; readonly limb: string };
 
-// Draws the eyes and the mouth. Coordinates are in the 300 x 370 drawing.
-// `size` is the eye radius.
-export type Face = {
-	readonly eyes: (left: number, right: number, y: number, size: number) => string;
-	readonly mouth: (x: number, y: number, kind?: "smile" | "o") => string;
-};
+// The Agent loop states the face can show, and idle.
+export type FaceState =
+	| "idle"
+	| "waiting"
+	| "planning"
+	| "running"
+	| "checking"
+	| "done"
+	| "sentback"
+	| "blocked"
+	| "escalated"
+	| "dropped";
 
 export const PALETTES: Record<string, Palette> = {
 	master: { light: "#FBD8D0", base: "#EBA196", deep: "#C9746A", limb: "#E3958A" },
@@ -29,348 +35,463 @@ export const PALETTES: Record<string, Palette> = {
 	channels: { light: "#FFD6F0", base: "#F28CCB", deep: "#C9529C", limb: "#EC80C2" },
 };
 
+// Where the face sits in the 300 x 370 drawing.
+const FACE: Record<string, readonly [number, number]> = {
+	master: [150, 174],
+	orders: [152, 170],
+	support: [150, 160],
+	marketing: [150, 170],
+	finance: [141, 164],
+	inventory: [150, 190],
+	market: [148, 176],
+	website: [150, 179],
+	analytics: [150, 158],
+	hr: [142, 175],
+	places: [150, 180],
+	catalog: [150, 150],
+	channels: [150, 158],
+};
+
 // The square that shows the head in a small avatar: x, y and side, in the drawing.
-export const BUST: Record<string, readonly [number, number, number]> = {
-	master: [50, 108, 200],
-	orders: [54, 100, 200],
-	support: [50, 82, 200],
-	marketing: [52, 92, 200],
-	finance: [50, 92, 200],
-	inventory: [50, 98, 200],
-	market: [50, 78, 200],
-	website: [50, 100, 200],
-	analytics: [50, 76, 200],
-	hr: [52, 108, 200],
-	places: [50, 112, 200],
-	catalog: [50, 26, 200],
-	channels: [50, 86, 200],
-};
+export const BUST: Record<string, readonly [number, number, number]> = Object.fromEntries(
+	Object.entries(FACE).map(([id, [x, y]]) => [id, [x - 100, y - 95, 200] as const]),
+);
 
-// The ink for eyes, outlines and the mouth.
-export const INK = "#1B1B1F";
-export const OUTLINE = "#3B2418";
-export const IRIS = "#6B3B22";
-const BOOT = "#8A4E2B";
-const BOOT_DARK = "#5E3219";
-const LACE = "#E2B07A";
-const WOOD = "#9A5E34";
-const GOLD = "#F2C14E";
+export const INK = "#41252C";
 
-// The clay light: light from the top left, a soft highlight and shading from each shape's own edge.
-// `blur` sets how round a shape looks; tubes (arms, legs, handles) use a smaller one.
-const light = (id: string, blur: number, depth: number) =>
-	`<filter id="${id}" x="-25%" y="-25%" width="150%" height="150%" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="${blur}" result="b"/><feDiffuseLighting in="b" surfaceScale="${depth}" diffuseConstant="1.15" lighting-color="#fff" result="d"><feDistantLight azimuth="235" elevation="48"/></feDiffuseLighting><feComposite in="d" in2="SourceAlpha" operator="in" result="d2"/><feBlend in="SourceGraphic" in2="d2" mode="multiply" result="m"/><feSpecularLighting in="b" surfaceScale="${depth}" specularConstant=".55" specularExponent="22" lighting-color="#fff" result="s"><fePointLight x="40" y="20" z="260"/></feSpecularLighting><feComposite in="s" in2="SourceAlpha" operator="in" result="s2"/><feComposite in="m" in2="s2" operator="arithmetic" k2="1" k3=".85" result="lit"/><feComposite in="lit" in2="SourceAlpha" operator="in"/></filter>`;
+// ---- Shapes. ----
+const path = (d: string, fill: string, extra = "") => `<path d="${d}" fill="${fill}"${extra ? ` ${extra}` : ""}/>`;
+const oval = (x: number, y: number, rx: number, ry: number, fill: string) =>
+	`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${fill}"/>`;
+const box = (x: number, y: number, w: number, h: number, r: number, fill: string) =>
+	`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${fill}"/>`;
+const line = (d: string, stroke: string, w: number, opacity = 1) =>
+	path(
+		d,
+		"none",
+		`stroke="${stroke}" stroke-width="${w}"${opacity < 1 ? ` opacity="${opacity}"` : ""} stroke-linecap="round" stroke-linejoin="round"`,
+	);
+const group = (transform: string, content: string) => `<g transform="${transform}">${content}</g>`;
+const r2 = (n: number) => Number(n.toFixed(2));
 
-export function defs(k: string, _c: Palette): string {
-	return `<defs><filter id="${k}s" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter>${light(`${k}clay`, 7, 6)}${light(`${k}tube`, 3, 4)}</defs>`;
+const gradient = (id: string, colors: readonly string[], cx = "32%", cy = "23%", r = "78%") =>
+	`<radialGradient id="${id}" cx="${cx}" cy="${cy}" r="${r}">${colors.map((c, i) => `<stop offset="${[0, 0.54, 1][i]}" stop-color="${c}"/>`).join("")}</radialGradient>`;
+
+// The gradients for one mascot. `k` keeps the ids apart when two avatars share a page.
+export function defs(k: string, c: Palette): string {
+	return `<defs>${gradient(`${k}clay`, [c.light, c.base, c.deep])}${gradient(`${k}arm`, [c.light, c.limb, c.deep])}${gradient(`${k}recess`, [c.deep, c.deep, "#594454"])}${gradient(`${k}boot`, ["#d39a69", "#966347", "#4a302d"])}${gradient(`${k}wood`, ["#ffe0a6", "#bb8051", "#774231"])}${gradient(`${k}gold`, ["#fff5bb", "#ebba54", "#aa612e"])}${gradient(`${k}red`, ["#ffb3a4", "#e47065", "#a53247"])}${gradient(`${k}white`, ["#fffef9", "#fff6e8", "#c9a8a5"])}${gradient(`${k}iris`, ["#d9ab73", "#905837", "#4b2b29"])}<radialGradient id="${k}floor"><stop stop-color="#38252e" stop-opacity=".31"/><stop offset=".55" stop-color="#483442" stop-opacity=".2"/><stop offset="1" stop-color="#483442" stop-opacity="0"/></radialGradient></defs>`;
 }
 
-// Turns a drawing into clay: the outlines fade to a soft dark edge, filled shapes take the clay
-// light and tubes take the tube light. Fine lines (2.5 or less) stay flat, and so does a shape
-// that has a filter already.
-export function clay(k: string, markup: string): string {
-	return markup
-		.replaceAll(`stroke="${OUTLINE}"`, `stroke="${OUTLINE}" stroke-opacity=".22"`)
-		.replace(/<(path|rect|circle|ellipse)\b([^>]*?)fill="(#[0-9A-Fa-f]{3,6})"([^>]*?)\/>/g, (m, tag: string, a: string, fill: string, b: string) => {
-			if (/filter=/.test(a + b)) return m;
-			if (tag !== "ellipse" && /stroke-width="(1\.5|2|2\.5)"/.test(a + b)) return m;
-			return `<${tag}${a}fill="${fill}"${b} filter="url(#${k}clay)"/>`;
+// The soft floor shadow.
+export const shadow = (k: string) => oval(150, 345, 123, 19, `url(#${k}floor)`);
+
+// ---- The face: eyes, brows, nose, cheeks and mouth for each state. ----
+function expression(state: FaceState, clay: string, deep: string, white: string, iris: string): string {
+	const eyes = ([-1, 1] as const)
+		.map((side) => {
+			const closed = ["done", "blocked", "dropped"].includes(state) || (state === "checking" && side === 1);
+			const arc = state === "done" || state === "checking" ? -19 : state === "dropped" ? 12 : 0;
+			const height = state === "waiting" ? 11 : state === "escalated" ? 25 : 21;
+			const dx = state === "running" ? 7 : 0;
+			const dy = state === "planning" ? -8 : state === "sentback" ? 7 : 0;
+			const brow =
+				state === "escalated"
+					? "M-12 -34Q0 -48 12 -34"
+					: state === "running"
+						? side === -1
+							? "M-12 -37L12 -29"
+							: "M-12 -29L12 -37"
+						: state === "sentback"
+							? side === -1
+								? "M-12 -25Q0 -31 12 -35"
+								: "M-12 -35Q0 -31 12 -25"
+							: "M-12 -28Q0 -38 12 -29";
+			const open =
+				oval(1, 2, 22, height + 2, deep) +
+				oval(0, 0, 20, height, white) +
+				oval(dx, dy, 11, Math.min(height - 2, 12), iris) +
+				oval(dx, dy, 6, Math.min(height - 4, 8), "#25161c") +
+				oval(dx - 4, dy - 4, 3.7, 3.5, "white") +
+				oval(dx + 4, dy + 4, 1.5, 1.5, "#fff4d5");
+			const lid = closed ? line(`M-14 0Q0 ${arc} 14 0`, INK, 6) : open;
+			return group(`translate(${side * 31} 0)`, line(brow, INK, 5, 0.72) + lid);
 		})
-		.replace(/<path([^>]*?)fill="none"([^>]*?)stroke-width="(1[0-9]|[6-9](\.5)?)"([^>]*?)\/>/g, (m) =>
-			/filter=/.test(m) ? m : m.replace("/>", ` filter="url(#${k}tube)"/>`),
-		);
+		.join("");
+	let mouth =
+		path("M-20 30Q0 37 20 30Q18 55 0 56Q-17 55-20 30Z", INK) +
+		path("M-16 33Q0 38 16 33Q13 41 0 41Q-13 41-16 33Z", "#fff4e4") +
+		path("M-11 51Q0 43 11 51Q0 57-11 51Z", "#e78383");
+	if (state === "blocked" || state === "sentback") mouth = line("M-13 40Q0 39 13 40", INK, 5);
+	if (state === "escalated" || state === "dropped")
+		mouth = oval(0, 40, state === "escalated" ? 9 : 5, state === "escalated" ? 11 : 4, INK);
+	if (state === "running") mouth = line("M-10 40Q2 45 13 37", INK, 5);
+	const blink = state === "idle" || state === "waiting" ? ' class="sm-blink"' : "";
+	const cheek = (x: number) => `<ellipse cx="${x}" cy="23" rx="12" ry="6" fill="#a63655" opacity=".15"/>`;
+	return `${cheek(-52)}${cheek(52)}<g${blink}>${eyes}</g>${oval(0, 18, 13, 11, deep)}${oval(-1, 15, 12, 11, clay)}${mouth}`;
 }
 
-export const shadow = (k: string) =>
-	`<ellipse cx="150" cy="358" rx="104" ry="9" fill="#1B2430" opacity=".14" filter="url(#${k}s)"/>`;
-
-// ---- Shapes. Every shape has the same outline. ----
-const shape = (d: string, fill: string, w = 4) =>
-	`<path d="${d}" fill="${fill}" stroke="${OUTLINE}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"/>`;
-const flat = (d: string, fill: string, opacity = 1) =>
-	`<path d="${d}" fill="${fill}"${opacity < 1 ? ` opacity="${opacity}"` : ""}/>`;
-const line = (d: string, color: string, w = 3) =>
-	`<path d="${d}" fill="none" stroke="${color}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
-const circle = (x: number, y: number, r: number, fill: string, w = 4) =>
-	`<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" stroke="${OUTLINE}" stroke-width="${w}"/>`;
-const rect = (x: number, y: number, w: number, h: number, fill: string, rx = 3, sw = 3) =>
-	`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="${fill}" stroke="${OUTLINE}" stroke-width="${sw}"/>`;
-
-// The body with its shading: a deep tone on the right and a light tone on the left, cut to the body.
-const body = (k: string, c: Palette, d: string, extra = "") =>
-	`<clipPath id="${k}c"><path d="${d}"/></clipPath>${flat(d, c.base)}<g clip-path="url(#${k}c)">${flat(
-		"M200 0 L340 0 L340 370 L196 370 Q230 200 200 0 Z",
-		c.deep,
-		0.32,
-	)}${flat("M0 0 L104 0 Q76 160 100 370 L0 370 Z", c.light, 0.4)}${extra}</g>${line(d, OUTLINE, 4)}`;
-
-// An arm: a tube with an outline.
-const arm = (c: Palette, d: string) =>
-	`<path d="${d}" fill="none" stroke="${OUTLINE}" stroke-width="21" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${c.limb}" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>`;
-const hand = (c: Palette, x: number, y: number, r = 12) =>
-	`${circle(x, y, r, c.limb, 3.5)}<path d="M${x - r * 0.45} ${y - r * 0.15} Q${x - r * 0.1} ${y + r * 0.35} ${x + r * 0.35} ${y + r * 0.1}" fill="none" stroke="${OUTLINE}" stroke-width="2" stroke-linecap="round" opacity=".5"/>`;
-// An open hand that waves: a palm and four fingers.
-const wave = (c: Palette, x: number, y: number) => {
-	const fingers = (
-		[
-			[-11, -10, -17, -27],
-			[-4, -13, -5, -32],
-			[4, -13, 7, -31],
-			[11, -9, 18, -24],
-		] as const
-	)
-		.map(([a, b, d, e]) => `M${x + a} ${y + b} L${x + d} ${y + e}`)
-		.join(" ");
-	const thumb = `M${x - 13} ${y + 2} L${x - 25} ${y - 6}`;
-	return `<path d="${fingers} ${thumb}" fill="none" stroke="${OUTLINE}" stroke-width="13" stroke-linecap="round"/><path d="${fingers} ${thumb}" fill="none" stroke="${c.limb}" stroke-width="6.5" stroke-linecap="round"/><ellipse cx="${x}" cy="${y}" rx="15" ry="14" fill="${c.limb}" stroke="${OUTLINE}" stroke-width="3.5"/>`;
+// ---- The bodies. ----
+type Paint = {
+	readonly clay: string;
+	readonly arm: string;
+	readonly leather: string;
+	readonly wood: string;
+	readonly gold: string;
+	readonly recess: string;
+	readonly red: string;
 };
-// A fist with the index finger up.
-const point = (c: Palette, x: number, y: number) =>
-	`<path d="M${x + 2} ${y - 6} L${x + 4} ${y - 30}" fill="none" stroke="${OUTLINE}" stroke-width="13" stroke-linecap="round"/><path d="M${x + 2} ${y - 6} L${x + 4} ${y - 30}" fill="none" stroke="${c.limb}" stroke-width="6.5" stroke-linecap="round"/>${hand(c, x, y)}`;
 
-// Legs and worn brown boots. The toes point out.
-const boot = (x: number, dir: 1 | -1) => {
-	const p = (dx: number) => x + dx * dir;
-	return `<path d="M${p(-14)} 322 L${p(12)} 322 L${p(14)} 334 Q${p(34)} 336 ${p(36)} 348 L${p(36)} 352 L${p(-18)} 352 L${p(-18)} 338 Q${p(-18)} 328 ${p(-14)} 322 Z" fill="${BOOT}" stroke="${OUTLINE}" stroke-width="3.5" stroke-linejoin="round"/><path d="M${p(-18)} 348 L${p(36)} 348 L${p(36)} 355 L${p(-18)} 355 Z" fill="${BOOT_DARK}" stroke="${OUTLINE}" stroke-width="3" stroke-linejoin="round"/>${line(`M${p(-8)} 328 L${p(6)} 334 M${p(6)} 328 L${p(-8)} 334`, LACE, 2.5)}`;
-};
-const legs = (c: Palette, a: number, b: number, top: number) =>
-	`${rect(a - 9, top, 18, 330 - top, c.limb, 6, 3.5)}${rect(b - 9, top, 18, 330 - top, c.limb, 6, 3.5)}${boot(a, -1)}${boot(b, 1)}`;
+type Body = { body: string; prop?: string; overlay?: string };
 
-// The round nose sits between the eyes and the mouth.
-const nose = (c: Palette, x: number, y: number) =>
-	`<ellipse cx="${x}" cy="${y}" rx="10" ry="8" fill="${c.limb}" stroke="${OUTLINE}" stroke-width="3"/><ellipse cx="${x - 3}" cy="${y - 3}" rx="3.5" ry="2.2" fill="#fff" opacity=".55"/>`;
-
-type Draw = (k: string, c: Palette, f: Face) => string;
-
-export const DRAW: Record<string, Draw> = {
-	// Petra: an arched doorway with a round finial and the Treasury front. Waves the team in.
-	master: (k, c, f) => {
-		const d = "M86 304 L86 150 A64 64 0 0 1 214 150 L214 304 Q214 314 204 314 L96 314 Q86 314 86 304 Z";
-		const niche = "M104 304 L104 160 A46 46 0 0 1 196 160 L196 304 Z";
-		const columns = [106, 184].map((x) => rect(x, 182, 10, 118, c.light, 2, 2.5)).join("");
-		return `${legs(c, 124, 176, 306)}
-${arm(c, "M212 228 Q238 250 232 280")}${hand(c, 232, 284)}
-${rect(143, 80, 14, 16, c.base, 3, 3.5)}${circle(150, 70, 13, c.base)}
-${body(k, c, d, `${flat(niche, c.deep, 0.42)}`)}
-${rect(136, 120, 28, 26, c.light, 3, 2.5)}${shape("M132 122 Q150 100 168 122 Z", c.light, 2.5)}
-${shape("M100 176 L150 150 L200 176 Z", c.light, 2.5)}${rect(98, 176, 104, 8, c.light, 2, 2.5)}
-${columns}${rect(122, 262, 9, 40, c.light, 2, 2.5)}${rect(169, 262, 9, 40, c.light, 2, 2.5)}${rect(137, 268, 26, 34, "#7A3B2C", 2, 2.5)}
-${nose(c, 150, 226)}${f.eyes(128, 172, 206, 13)}${f.mouth(150, 244)}
-${arm(c, "M90 222 Q62 210 58 174")}${wave(c, 56, 164)}`;
-	},
-
-	// Pisa: a leaning tower of arcades with a bell top. Carries a parcel.
-	orders: (k, c, f) => {
-		const d =
-			"M100 300 L100 96 Q100 84 112 84 L188 84 Q200 84 200 96 L200 300 Q200 310 190 310 L110 310 Q100 310 100 300 Z";
-		const arcade = (y: number) =>
-			[112, 132, 152, 172]
-				.map((x) =>
-					flat(
-						`M${x} ${y + 26} L${x} ${y + 9} A8 8 0 0 1 ${x + 16} ${y + 9} L${x + 16} ${y + 26} Z`,
-						c.deep,
-						0.55,
-					),
+function bodies(id: string, c: Palette, p: Paint): Body {
+	const { light, deep } = c;
+	const { clay, leather, wood, gold, recess } = p;
+	const seam = (d: string) => line(d, deep, 4, 0.73) + group("translate(0 -2)", line(d, light, 2, 0.6));
+	const glint = (d: string) => line(d, "white", 4, 0.26);
+	const arch = (x: number, y: number, w: number, h: number, fill = recess) =>
+		path(`M${x} ${y + h}v-${h - w / 2}a${w / 2} ${w / 2} 0 0 1 ${w} 0v${h - w / 2}Z`, fill);
+	switch (id) {
+		case "master":
+			return {
+				body:
+					arch(76, 65, 156, 211, deep) +
+					arch(67, 57, 154, 215, clay) +
+					oval(144, 58, 20, 19, clay) +
+					arch(90, 106, 109, 155, recess) +
+					arch(96, 114, 98, 142, clay) +
+					path("M80 124L145 77L210 124Q211 132 201 132H89Q79 132 80 124Z", clay) +
+					line("M95 119L145 86L194 119", light, 4, 0.75) +
+					[77, 198]
+						.map(
+							(x) =>
+								box(x, 139, 14, 108, 7, clay) +
+								box(x - 4, 131, 22, 11, 4, clay) +
+								box(x - 5, 240, 24, 11, 4, clay),
+						)
+						.join("") +
+					box(64, 249, 164, 25, 10, clay),
+			};
+		case "orders":
+			return {
+				body: group(
+					"rotate(9 147 248)",
+					box(96, 79, 112, 187, 30, clay) +
+						arch(114, 43, 74, 54, clay) +
+						arch(135, 55, 30, 32) +
+						oval(150, 76, 8, 11, gold) +
+						[89, 117, 227, 252].map((y) => box(86, y, 131, 13, 6, clay) + glint(`M97 ${y + 3}H198`)).join("") +
+						[103, 131, 159, 187].map((x) => arch(x, 102, 15, 17)).join(""),
+				),
+				prop: group(
+					"rotate(-9 219 233)",
+					box(191, 207, 59, 53, 9, wood) +
+						box(213, 207, 15, 53, 2, "#f2c98e") +
+						box(195, 235, 13, 13, 2, "#fff3dd"),
+				),
+			};
+		case "support":
+			return {
+				body:
+					box(106, 53, 90, 35, 12, wood) +
+					box(105, 236, 92, 28, 11, wood) +
+					path(
+						"M104 73Q57 97 59 161Q59 212 106 246Q154 259 196 244Q238 216 239 160Q241 101 195 73Q150 62 104 73Z",
+						clay,
+					) +
+					seam("M85 93Q150 81 217 94M70 116Q151 104 229 118M68 208Q146 229 229 210M87 231Q148 248 210 232") +
+					glint("M92 109Q78 127 77 148"),
+				overlay:
+					line("M66 153Q56 79 116 68Q158 53 202 81Q235 101 234 152", "#594354", 10) +
+					box(51, 143, 27, 53, 11, leather) +
+					box(223, 143, 27, 53, 11, leather) +
+					line("M235 183Q228 225 200 221", "#594354", 6) +
+					oval(196, 222, 11, 6, leather),
+			};
+		case "marketing":
+			return {
+				body:
+					path(
+						"M69 249Q59 225 71 175L97 95Q117 48 160 47Q199 47 211 91L239 223Q244 258 207 269L106 272Q78 269 69 249Z",
+						clay,
+					) +
+					glint("M89 159Q102 98 130 76") +
+					seam("M77 238Q102 247 122 241M183 248Q211 248 232 232"),
+				prop: group(
+					"rotate(-23 230 197)",
+					box(221, 204, 13, 40, 5, leather) +
+						path("M197 187L219 187L257 168V220L219 205H197Q189 196 197 187Z", gold) +
+						oval(254, 194, 13, 27, gold) +
+						oval(257, 194, 9, 20, "#733954") +
+						oval(254, 194, 4, 8, "#f1c685"),
+				),
+			};
+		case "finance": {
+			const milled = Array.from({ length: 13 }, (_, i) => {
+				const a = (i - 6) * 0.19;
+				return line(`M${r2(161 + 85 * Math.cos(a) - 18)} ${r2(165 + 101 * Math.sin(a))}l17 -2`, light, 2, 0.56);
+			}).join("");
+			return {
+				body:
+					oval(161, 165, 88, 104, deep) +
+					milled +
+					oval(141, 162, 88, 104, clay) +
+					oval(140, 162, 76, 91, recess) +
+					oval(139, 160, 71, 87, clay) +
+					glint("M67 135Q83 81 124 68"),
+				prop: group(
+					"rotate(15 240 153)",
+					oval(243, 153, 27, 35, wood) +
+						oval(237, 153, 27, 35, gold) +
+						oval(237, 153, 19, 26, wood) +
+						oval(236, 152, 16, 23, gold) +
+						path("M237 136L247 153L237 169L227 153Z", "#fff0a5"),
+				),
+			};
+		}
+		case "inventory":
+			return {
+				body:
+					path("M145 63Q150 54 159 63L250 240Q261 258 244 269L215 282H65Q49 280 54 264Z", deep) +
+					path("M140 63Q147 53 152 66L228 260Q235 275 218 276H65Q47 276 55 259Z", clay) +
+					seam("M118 108H170M102 142H184M67 235H218M57 258H227M143 108V141M111 236V257M178 236V257") +
+					line("M186 103L248 242M220 234L244 224M227 255L253 244", light, 3, 0.34),
+				prop: group(
+					"rotate(8 235 250)",
+					box(204, 223, 59, 49, 7, wood) +
+						box(210, 229, 47, 37, 3, "#77472e") +
+						line("M212 258L254 234M211 242H255M211 254H255", "#cc935b", 5),
+				),
+			};
+		case "market":
+			return {
+				body:
+					path(
+						"M57 250Q52 240 66 224L83 194L102 125Q119 89 139 79L166 56Q180 50 185 70L213 162L238 226Q252 252 237 269H71Q57 267 57 250Z",
+						clay,
+					) +
+					glint("M105 154Q118 101 157 79") +
+					path("M64 228Q113 248 229 221L239 238Q141 270 55 247Z", recess) +
+					path("M57 252Q134 271 243 241L243 261Q142 289 63 268Z", clay) +
+					seam("M66 239Q139 260 232 231M71 259Q146 281 235 252"),
+			};
+		case "website":
+			return {
+				body:
+					path("M123 91Q123 67 149 40Q177 63 177 91Z", clay) +
+					seam("M149 49Q136 69 137 85M151 49Q162 70 160 85") +
+					box(109, 80, 82, 39, 15, clay) +
+					box(95, 103, 113, 41, 14, clay) +
+					arch(81, 124, 142, 140, clay) +
+					arch(99, 131, 104, 123, clay) +
+					[238, 253, 269].map((y, i) => box(77 - i * 8, y, 150 + i * 16, 17, 7, clay)).join("") +
+					seam("M121 89H178M108 112H193M93 135H107M193 135H210"),
+				prop: group(
+					"rotate(9 232 239)",
+					box(201, 214, 59, 51, 9, gold) +
+						box(204, 223, 53, 40, 7, clay) +
+						oval(217, 236, 5, 5, recess) +
+						oval(245, 236, 5, 5, recess) +
+						line("M219 246H243", light, 4),
+				),
+			};
+		case "analytics":
+			return {
+				body:
+					box(88, 78, 127, 181, 24, clay) +
+					[98, 113, 130, 149, 168, 186, 201].map((x) => seam(`M${x} 204v37`)).join("") +
+					[97, 203]
+						.map(
+							(x, i) =>
+								oval(x, 78, 27, 26, clay) +
+								group(
+									`translate(${x} 78) scale(${i ? -1 : 1} 1)`,
+									seam("M-13 4Q-16-16 2-13Q15-11 12 1Q10 11 1 7Q-4 5 0 0"),
+								),
+						)
+						.join("") +
+					box(102, 61, 97, 28, 9, clay) +
+					glint("M113 67H183") +
+					box(78, 241, 146, 20, 8, clay) +
+					box(72, 256, 159, 20, 9, clay),
+				prop: group(
+					"rotate(-10 223 227)",
+					box(194, 198, 63, 58, 9, wood) +
+						box(198, 201, 54, 49, 6, "#fff0d1") +
+						line("M206 213V240H244", "#aa896a", 2) +
+						line("M210 232L220 223L229 228L242 213", "#688333", 4),
+				),
+			};
+		case "hr":
+			return {
+				body:
+					path("M145 237Q149 165 229 103Q225 153 250 197Q266 222 239 251Z", clay) +
+					seam("M225 119Q201 198 192 236") +
+					path(
+						"M51 238Q48 169 156 68Q180 48 203 49Q175 82 179 119Q186 167 221 219Q235 246 209 259H75Q56 256 51 238Z",
+						clay,
+					) +
+					glint("M60 220Q86 145 168 77") +
+					seam("M99 126Q124 126 147 106Q169 87 190 68") +
+					box(49, 240, 198, 28, 10, clay),
+				prop: group(
+					"rotate(11 235 229)",
+					box(204, 212, 60, 43, 7, leather) +
+						box(207, 213, 54, 38, 6, "#fff5de") +
+						box(226, 207, 15, 11, 4, recess) +
+						oval(220, 230, 6, 6, clay) +
+						line("M231 226H251M231 235H246", deep, 3),
+				),
+			};
+		case "places":
+			return {
+				body:
+					box(147, 49, 8, 43, 4, leather) +
+					oval(151, 48, 17, 16, p.red) +
+					box(70, 144, 161, 121, 23, clay) +
+					path("M62 156Q67 77 150 72Q225 72 240 156Z", clay) +
+					path("M140 73Q162 69 173 76L192 128H165Z", recess) +
+					line("M138 74L160 128M176 78L196 128", light, 4, 0.76) +
+					box(64, 131, 172, 18, 8, clay) +
+					box(64, 246, 172, 26, 10, clay) +
+					glint("M80 120Q99 91 125 85"),
+				prop: group(
+					"rotate(8 229 232)",
+					path("M199 205L219 214L240 205L262 215L257 257L238 248L216 256L195 247Z", "#ffe9ba") +
+						path("M219 214L240 205L238 248L216 256Z", "#d4e1ab") +
+						line("M203 237L215 226L227 237L247 219L254 230", "#509ca0", 3) +
+						oval(227, 237, 4, 4, "#b75055"),
+				),
+			};
+		case "catalog": {
+			const spines = ["#e5aa76", "#e494a4", "#b6cb86", "#99cddb", "#e6bc83", "#d7a1e6"]
+				.map(
+					(col, n) =>
+						box(96 + n * 17, 218 - (n % 3) * 4, 14, 30 + (n % 3) * 4, 3, col) +
+						line(`M${100 + n * 17} 237h6`, "#fff1de", 2, 0.7),
 				)
 				.join("");
-		const band = (y: number) => rect(94, y, 112, 9, c.light, 4, 3);
-		return `${legs(c, 128, 176, 300)}
-<g transform="rotate(7 150 306)">
-${rect(116, 46, 68, 42, c.base, 6, 4)}${flat("M126 84 L126 64 A8 8 0 0 1 142 64 L142 84 Z M158 84 L158 64 A8 8 0 0 1 174 64 L174 84 Z", c.deep, 0.55)}
-<path d="M144 62 Q150 52 156 62 L158 72 L142 72 Z" fill="${GOLD}" stroke="${OUTLINE}" stroke-width="2.5" stroke-linejoin="round"/>
-${rect(110, 40, 80, 8, c.light, 4, 3)}
-${body(k, c, d, `${arcade(92)}${arcade(124)}${arcade(260)}`)}
-${band(88)}${band(120)}${band(154)}${band(252)}${band(292)}
-${nose(c, 150, 210)}${f.eyes(129, 171, 190, 13)}${f.mouth(150, 230)}
-</g>
-${arm(c, "M104 226 Q80 244 82 276")}${hand(c, 82, 280)}
-<g transform="rotate(-6 238 262)">${rect(206, 236, 60, 48, "#C8955A", 4, 3.5)}${line("M206 256 L266 256 M236 236 L236 284", "#8A5A2E", 3)}</g>
-${arm(c, "M196 222 Q214 232 214 246")}${hand(c, 214, 248)}${hand(c, 262, 240, 11)}`;
-	},
+			return {
+				body:
+					arch(82, 51, 147, 220, deep) +
+					arch(71, 47, 146, 220, clay) +
+					arch(86, 59, 117, 192, recess) +
+					arch(91, 65, 106, 148, clay) +
+					spines +
+					box(78, 246, 137, 16, 6, clay) +
+					glint("M77 125Q82 82 113 65"),
+				prop: group(
+					"rotate(17 235 222)",
+					path("M228 198H253Q260 198 260 206V245Q260 252 253 252H218Q211 252 211 245V216Z", gold) +
+						oval(227, 212, 5, 5, "#754936") +
+						line("M227 212Q221 190 239 185", leather, 4) +
+						line("M221 227H249M221 237H241", "#885440", 3),
+				),
+			};
+		}
+		default:
+			// channels
+			return {
+				body:
+					path(
+						"M49 244V175Q53 161 77 155L114 114Q147 102 194 116L225 154Q252 166 253 183V245Q253 257 242 257H200Q190 257 188 245Q184 217 150 216Q116 217 112 245Q111 257 101 257H61Q49 257 49 244Z",
+						clay,
+					) +
+					path("M112 102L150 73L190 102V120H112Z", clay) +
+					arch(138, 92, 24, 28) +
+					seam("M51 182Q82 164 96 150M205 150Q222 166 250 183") +
+					[63, 84, 201, 222].map((x, i) => arch(x, i === 1 || i === 2 ? 180 : 194, 15, 22)).join("") +
+					glint("M113 225Q145 197 183 219"),
+				prop: group(
+					"rotate(25 241 246)",
+					box(238, 167, 7, 133, 3, wood) +
+						path("M238 272Q225 288 231 315Q241 325 252 315Q257 287 245 272Z", wood) +
+						glint("M238 288Q235 301 237 311"),
+				),
+			};
+	}
+}
 
-	// Kyoto: a paper lantern with ribs, two wooden caps and a warm glow. Listens on a headset.
-	support: (k, c, f) => {
-		const d = "M150 96 C216 96 236 150 236 190 C236 236 214 284 150 284 C86 284 64 236 64 190 C64 150 84 96 150 96 Z";
-		const ribs = [128, 154, 246, 268].map((y) => `M60 ${y} Q150 ${y + (y < 190 ? -10 : 10)} 240 ${y}`).join(" ");
-		return `${legs(c, 126, 174, 290)}
-${arm(c, "M70 214 Q46 236 52 266")}${hand(c, 52, 270)}
-<path d="M124 92 Q124 54 150 54 Q176 54 176 92" fill="none" stroke="${OUTLINE}" stroke-width="13" stroke-linecap="round"/><path d="M124 92 Q124 54 150 54 Q176 54 176 92" fill="none" stroke="#6A3420" stroke-width="7" stroke-linecap="round"/>
-${body(k, c, d, `<ellipse cx="150" cy="250" rx="70" ry="40" fill="#FFD27A" opacity=".55"/>${line(ribs, "#E9B872", 3)}${line("M112 100 Q96 190 112 280 M188 100 Q204 190 188 280", "#E9B872", 3)}`)}
-${rect(110, 84, 80, 20, "#6A3420", 5, 4)}${rect(112, 278, 76, 18, "#6A3420", 5, 4)}
-${[122, 150, 178].map((x) => `<circle cx="${x}" cy="94" r="3" fill="${GOLD}"/><circle cx="${x}" cy="287" r="3" fill="${GOLD}"/>`).join("")}
-${nose(c, 150, 200)}${f.eyes(126, 174, 178, 14)}${f.mouth(150, 222)}
-${line("M178 92 Q234 100 232 160", OUTLINE, 11)}${line("M178 92 Q234 100 232 160", "#2E2E33", 6)}
-${line("M222 188 Q214 222 182 232", OUTLINE, 7)}${line("M222 188 Q214 222 182 232", "#2E2E33", 3.5)}<ellipse cx="178" cy="233" rx="8" ry="6" fill="#2E2E33" stroke="${OUTLINE}" stroke-width="2.5"/>
-${arm(c, "M228 230 Q256 214 250 186")}
-<ellipse cx="232" cy="176" rx="13" ry="18" fill="#2E2E33" stroke="${OUTLINE}" stroke-width="3.5"/><ellipse cx="236" cy="176" rx="5" ry="9" fill="${GOLD}" opacity=".85"/>
-${hand(c, 250, 180, 12)}`;
-	},
-
-	// Rio: a tall rounded rock, like Sugarloaf Mountain, with moss at its foot. Calls out on a megaphone.
-	marketing: (k, c, f) => {
-		const d = "M80 300 Q66 190 108 116 Q150 52 192 116 Q234 190 220 300 Q150 314 80 300 Z";
-		const moss =
-			"M70 300 Q80 282 94 292 Q104 278 120 290 Q132 278 148 290 Q162 278 176 290 Q190 278 204 292 Q218 282 230 300 Q150 318 70 300 Z";
-		return `${legs(c, 124, 176, 300)}
-${arm(c, "M216 226 Q242 248 236 278")}${hand(c, 236, 282)}
-${body(k, c, d, line("M120 132 L110 168 M190 150 L204 196 M96 236 L106 262 M178 248 L190 276", c.deep, 3))}
-${shape(moss, "#7DB04B", 3.5)}${flat("M98 294 Q110 286 120 292 M160 292 Q172 284 186 292", "#5E8F33")}
-${nose(c, 152, 198)}${f.eyes(130, 176, 176, 14)}${f.mouth(154, 226, "o")}
-${arm(c, "M86 238 Q70 236 74 226")}
-<path d="M120 216 L84 200 L84 248 L120 232 Z" fill="#E04A3C" stroke="${OUTLINE}" stroke-width="3.5" stroke-linejoin="round"/><ellipse cx="84" cy="224" rx="9" ry="24" fill="#F7F1EA" stroke="${OUTLINE}" stroke-width="3.5"/>${rect(108, 228, 12, 18, "#B8372C", 3, 3)}
-${hand(c, 112, 244, 11)}`;
-	},
-
-	// Zurich: a thick coin with a milled edge and a mountain on its face. Holds up a gold coin.
-	finance: (k, c, f) => {
-		const d = "M150 98 A92 92 0 1 1 149.9 98 Z";
-		return `${legs(c, 126, 174, 270)}
-${arm(c, "M234 214 Q258 238 250 270")}${hand(c, 250, 274)}
-${body(k, c, d, `<circle cx="150" cy="190" r="76" fill="none" stroke="${c.light}" stroke-width="4"/>${flat("M104 156 L128 126 L142 142 L156 118 L196 156 Z", c.deep, 0.6)}${flat("M150 124 L156 118 L162 128 L154 132 Z M124 132 L128 126 L134 134 Z", "#fff", 0.9)}`)}
-<circle cx="150" cy="190" r="86" fill="none" stroke="${c.deep}" stroke-width="5" stroke-dasharray="2 5"/>
-${nose(c, 150, 206)}${f.eyes(128, 172, 186, 14)}${f.mouth(150, 228)}
-${arm(c, "M66 214 Q40 196 46 160")}${hand(c, 46, 154)}
-${circle(42, 130, 17, GOLD, 3.5)}<circle cx="42" cy="130" r="11" fill="none" stroke="#C9952A" stroke-width="2.5"/>`;
-	},
-
-	// Giza: a pyramid of stacked blocks. Carries a crate.
-	inventory: (k, c, f) => {
-		const d = "M150 60 Q156 60 160 70 L252 290 Q256 300 244 300 L56 300 Q44 300 48 290 L140 70 Q144 60 150 60 Z";
-		const rows = line(
-			"M30 112 L270 112 M30 160 L270 160 M30 252 L270 252 M30 278 L270 278 M150 112 L150 160 M118 160 L118 192 M182 160 L182 192 M96 252 L96 278 M204 252 L204 278 M150 278 L150 300",
-			OUTLINE,
-			2.5,
-		);
-		return `${legs(c, 126, 174, 296)}
-${body(k, c, d, rows)}
-${nose(c, 150, 210)}${f.eyes(128, 172, 190, 14)}${f.mouth(150, 230)}
-${arm(c, "M92 222 Q98 252 112 262")}${arm(c, "M208 222 Q202 252 188 262")}
-${rect(112, 244, 76, 54, "#B57A43", 4, 3.5)}${line("M112 244 L188 298 M188 244 L112 298 M112 262 L188 262", "#7E4E25", 3)}
-${hand(c, 112, 266)}${hand(c, 188, 266)}`;
-	},
-
-	// Machu: a mountain peak with two stone terraces. Points up at something it found.
-	market: (k, c, f) => {
-		const d = "M70 298 Q84 210 118 150 L150 74 L182 150 Q216 210 230 298 Q150 312 70 298 Z";
-		const terraces = `${shape("M60 262 L240 262 L240 282 L60 282 Z", "#B4B1A3", 3)}${line("M84 262 L84 282 M112 262 L112 282 M140 262 L140 282 M168 262 L168 282 M196 262 L196 282 M224 262 L224 282", OUTLINE, 2)}${shape("M70 112 L230 112 L230 126 L70 126 Z", "#B4B1A3", 3)}${flat("M70 104 L230 104 L230 112 L70 112 Z", "#7DB04B")}${flat("M50 254 L250 254 L250 262 L50 262 Z", "#7DB04B")}`;
-		return `${legs(c, 124, 176, 298)}
-${arm(c, "M78 236 Q56 254 62 282")}${hand(c, 62, 286)}
-${body(k, c, d, terraces)}
-${rect(96, 236, 16, 14, "#B4B1A3", 2, 2.5)}${rect(188, 238, 16, 12, "#B4B1A3", 2, 2.5)}
-${nose(c, 150, 186)}${f.eyes(130, 170, 164, 13)}${f.mouth(150, 210)}
-${arm(c, "M210 214 Q240 196 242 158")}${point(c, 242, 152)}`;
-	},
-
-	// Angkor: a tower of carved tiers with a lotus-bud tip. Carries a building block.
-	website: (k, c, f) => {
-		const d =
-			"M150 52 Q168 72 164 96 L176 96 L176 130 L190 130 L190 178 L204 178 L204 236 L216 236 L216 296 Q216 304 208 304 L92 304 Q84 304 84 296 L84 236 L96 236 L96 178 L110 178 L110 130 L124 130 L124 96 L136 96 Q132 72 150 52 Z";
-		const ledges = line("M124 96 L176 96 M110 130 L190 130 M96 178 L204 178 M84 236 L216 236", OUTLINE, 3.5);
-		const niches = [138, 162]
-			.map((x) => flat(`M${x - 6} 126 L${x - 6} 112 A6 6 0 0 1 ${x + 6} 112 L${x + 6} 126 Z`, c.deep, 0.6))
-			.join("");
-		return `${legs(c, 124, 176, 300)}
-${body(k, c, d, `${niches}${flat("M86 230 L214 230 L214 236 L86 236 Z M98 172 L202 172 L202 178 L98 178 Z M112 124 L188 124 L188 130 L112 130 Z", c.light, 0.7)}`)}
-${ledges}
-${nose(c, 150, 214)}${f.eyes(128, 172, 196, 13)}${f.mouth(150, 232)}
-${arm(c, "M92 240 Q94 262 108 270")}${arm(c, "M208 240 Q206 262 192 270")}
-${rect(106, 252, 88, 44, c.light, 4, 3.5)}${line("M118 274 Q134 262 150 274 Q166 286 182 274", c.deep, 3)}
-${hand(c, 108, 274)}${hand(c, 192, 274)}`;
-	},
-
-	// Delphi: a fluted column with a scroll capital. Holds up a chart.
-	analytics: (k, c, f) => {
-		const d = "M104 124 L196 124 L196 284 L104 284 Z";
-		const flutes = line("M118 132 L118 278 M134 132 L134 278 M166 132 L166 278 M182 132 L182 278", c.deep, 3);
-		const volute = (x: number, s: 1 | -1) =>
-			`${circle(x, 106, 22, c.base)}<path d="M${x} 106 m${-8 * s} 0 a8 8 0 1 ${s > 0 ? 1 : 0} ${16 * s} 0 a12 12 0 1 ${s > 0 ? 1 : 0} ${-22 * s} 4" fill="none" stroke="${OUTLINE}" stroke-width="3" stroke-linecap="round"/>`;
-		return `${legs(c, 128, 172, 304)}
-${arm(c, "M110 240 Q86 252 88 280")}${hand(c, 88, 284)}
-${body(k, c, d, flutes)}
-${rect(108, 92, 84, 32, c.base, 6, 4)}${[124, 138, 152, 166, 180].map((x) => `<ellipse cx="${x - 2}" cy="108" rx="5" ry="7" fill="${c.light}" stroke="${OUTLINE}" stroke-width="2"/>`).join("")}
-${volute(96, 1)}${volute(204, -1)}${rect(86, 72, 128, 18, c.base, 7, 4)}
-${rect(94, 282, 112, 14, c.base, 5, 4)}${rect(88, 294, 124, 12, c.base, 5, 4)}
-${nose(c, 150, 190)}${f.eyes(130, 170, 170, 13)}${f.mouth(150, 214)}
-${arm(c, "M192 200 Q214 196 220 186")}
-<g transform="rotate(6 236 210)">${rect(208, 184, 58, 52, "#F6EBC9", 4, 3.5)}${line("M216 226 L258 226 M216 226 L216 192", "#8A5A2E", 2.5)}<path d="M222 224 L222 214 L230 214 L230 224 Z M236 224 L236 206 L244 206 L244 224 Z M250 224 L250 196 L258 196 L258 224 Z" fill="#5E8C2E"/></g>
-${hand(c, 222, 184)}`;
-	},
-
-	// Sydney: two shell sails, like the Opera House, on a stone base. Shows a name badge.
-	hr: (k, c, f) => {
-		const d = "M72 270 Q66 170 140 120 Q160 108 176 104 Q224 178 228 270 Z";
-		const back = "M140 160 Q162 92 226 58 Q244 150 236 240 L176 240 Z";
-		return `${legs(c, 126, 176, 296)}
-${arm(c, "M86 248 Q62 262 66 288")}${hand(c, 66, 292)}
-${shape(back, "#F7EBD7")}${flat("M180 110 Q200 84 224 64 Q240 140 234 226 Q212 156 180 110 Z", c.base)}${line("M194 96 Q218 146 230 206 M208 82 Q228 136 234 186", c.deep, 2.5)}
-<clipPath id="${k}c"><path d="${d}"/></clipPath>${flat(d, "#F7EBD7")}<g clip-path="url(#${k}c)">${flat("M168 108 Q190 150 222 270 L240 270 L240 100 Z", "#E5D3B4")}${line("M110 160 Q130 200 128 270 M140 132 Q164 190 164 270", "#E5D3B4", 3)}</g>${line(d, OUTLINE, 4)}
-${rect(70, 266, 160, 30, "#D9B88A", 5, 4)}${line("M70 280 L230 280 M110 266 L110 296 M150 266 L150 296 M190 266 L190 296", "#A9865A", 2.5)}
-${nose(c, 152, 222)}${f.eyes(130, 174, 202, 14)}${f.mouth(152, 244)}
-${arm(c, "M212 236 Q236 228 236 212")}
-${line("M236 214 Q244 236 232 250", c.deep, 4)}${rect(214, 248, 40, 28, "#fff", 5, 3)}${rect(222, 256, 24, 4, c.base, 1, 0)}${rect(222, 264, 16, 3, "#C9C9CF", 1, 0)}
-${hand(c, 236, 208)}`;
-	},
-
-	// Greenwich: an observatory dome with an open shutter slit and a red time ball. Holds up a folded map.
-	places: (k, c, f) => {
-		const dome = "M84 184 A66 72 0 0 1 216 184 Z";
-		const drum = "M88 184 L212 184 L212 290 Q212 300 202 300 L98 300 Q88 300 88 290 Z";
-		return `${legs(c, 126, 174, 298)}
-${line("M150 112 L150 82", OUTLINE, 5)}${circle(150, 72, 11, "#D83A34", 3.5)}
-${body(k, c, dome, line("M118 128 Q110 156 108 184 M182 128 Q190 156 192 184", c.deep, 3))}
-${shape("M140 184 L140 116 Q150 108 160 116 L160 184 Z", "#3A3A44", 3.5)}${line("M146 150 L156 136", GOLD, 4)}
-<clipPath id="${k}d"><path d="${drum}"/></clipPath>${flat(drum, "#F2E6C6")}<g clip-path="url(#${k}d)">${flat("M190 180 L240 180 L240 300 L190 300 Z", "#DCCB9F")}</g>${line(drum, OUTLINE, 4)}
-${rect(82, 180, 136, 12, c.light, 4, 3.5)}${line("M96 184 L96 192 M110 184 L110 192 M124 184 L124 192 M138 184 L138 192 M162 184 L162 192 M176 184 L176 192 M190 184 L190 192 M204 184 L204 192", OUTLINE, 2)}
-${flat("M96 256 L96 236 A8 8 0 0 1 112 236 L112 256 Z M188 256 L188 236 A8 8 0 0 1 204 236 L204 256 Z", c.deep, 0.75)}
-${nose(c, 150, 228)}${f.eyes(128, 172, 210, 13)}${f.mouth(150, 246)}
-${arm(c, "M92 240 Q94 262 108 268")}${arm(c, "M208 240 Q206 262 192 268")}
-${rect(104, 252, 92, 44, "#F3E3B5", 3, 3.5)}${line("M134 252 L134 296 M166 252 L166 296", "#C9B27A", 2.5)}${line("M112 286 Q130 262 150 276 Q170 290 188 262", "#3C7DD9", 3)}${flat("M112 258 L126 258 L122 270 L112 272 Z M170 280 L188 274 L188 290 L174 290 Z", "#7DB04B")}
-${hand(c, 106, 272)}${hand(c, 194, 272)}`;
-	},
-
-	// Alexandria: a tall bookcase with an arched top and shelves of book spines. Holds up a price tag.
-	catalog: (k, c, f) => {
-		const d = "M86 300 L86 118 Q86 50 150 44 Q214 50 214 118 L214 300 Z";
-		const spines = (y: number, h: number) => {
-			const colours = ["#D64545", "#3C7DD9", "#E8B53C", "#4BA36B", "#8E5CC9", "#E07B39", "#D64545", "#3C7DD9"];
-			let x = 104;
-			let out = "";
-			colours.forEach((col, i) => {
-				const w = 9 + ((i * 7) % 5);
-				const hh = h - ((i * 5) % 9);
-				out += `<rect x="${x}" y="${y + h - hh}" width="${w}" height="${hh}" fill="${col}" stroke="${OUTLINE}" stroke-width="1.5"/>`;
-				x += w + 1;
-			});
-			return out;
-		};
-		return `${legs(c, 126, 174, 298)}
-${arm(c, "M208 226 Q234 248 228 276")}${hand(c, 228, 280)}
-${body(k, c, d)}
-${shape("M100 290 L100 136 L200 136 L200 290 Z", c.deep, 3.5)}
-${spines(140, 34)}${spines(186, 34)}${spines(232, 34)}
-${[174, 220, 266].map((y) => rect(98, y, 104, 8, c.light, 2, 3)).join("")}${rect(98, 128, 104, 8, c.light, 2, 3)}
-${rect(78, 118, 14, 182, c.light, 4, 3.5)}${rect(208, 118, 14, 182, c.light, 4, 3.5)}
-${nose(c, 150, 104)}${f.eyes(130, 170, 86, 12)}${f.mouth(150, 120)}
-${arm(c, "M90 206 Q64 192 64 168")}${hand(c, 64, 162)}
-${line("M64 160 Q52 176 50 196", OUTLINE, 2)}<path d="M38 196 L62 196 L62 228 L50 238 L38 228 Z" fill="#F0D9A8" stroke="${OUTLINE}" stroke-width="3" stroke-linejoin="round"/><circle cx="50" cy="204" r="3" fill="#fff" stroke="${OUTLINE}" stroke-width="1.5"/>`;
-	},
-
-	// Venice: a humped bridge with a centre arch, a small portico and shop windows. Holds a gondola oar.
-	channels: (k, c, f) => {
-		const d = "M34 298 L34 240 Q74 150 150 134 Q226 150 266 240 L266 298 L222 298 Q216 244 150 238 Q84 244 78 298 Z";
-		const shops = [62, 86, 192, 216]
-			.map((x, i) => {
-				const y = i < 2 ? 214 - i * 18 : 196 + (i - 2) * 18;
-				return `${flat(`M${x} ${y + 16} L${x} ${y + 6} A7 7 0 0 1 ${x + 14} ${y + 6} L${x + 14} ${y + 16} Z`, c.deep, 0.7)}${flat(`M${x - 1} ${y + 2} L${x + 15} ${y + 2} L${x + 15} ${y + 6} L${x - 1} ${y + 6} Z`, "#E04A3C")}`;
-			})
-			.join("");
-		return `${legs(c, 58, 242, 296)}
-${rect(124, 102, 52, 36, c.base, 3, 3.5)}${flat("M142 138 L142 118 A8 8 0 0 1 158 118 L158 138 Z", c.deep, 0.75)}${shape("M118 104 L150 84 L182 104 Z", c.light, 3.5)}
-${body(k, c, d, shops)}
-${line("M86 250 Q150 230 214 250", c.light, 3)}
-${nose(c, 150, 200)}${f.eyes(130, 170, 180, 13)}${f.mouth(150, 218)}
-${arm(c, "M60 250 Q42 266 44 288")}${hand(c, 44, 292)}
-${line("M236 112 L252 334", OUTLINE, 12)}${line("M236 112 L252 334", WOOD, 6)}<path d="M246 300 Q262 318 256 350 Q246 352 244 336 Q240 318 246 300 Z" fill="${WOOD}" stroke="${OUTLINE}" stroke-width="3" stroke-linejoin="round"/>
-${arm(c, "M246 240 Q252 222 244 206")}${hand(c, 243, 204)}`;
-	},
+// The right hand's height for each mascot that holds something.
+const GRIP: Record<string, number> = {
+	orders: 251,
+	marketing: 218,
+	finance: 172,
+	inventory: 261,
+	website: 253,
+	analytics: 246,
+	hr: 248,
+	places: 250,
+	catalog: 245,
+	channels: 245,
 };
+
+type Draw = (k: string, c: Palette, state: FaceState) => string;
+
+function draw(id: string): Draw {
+	return (k, c, state) => {
+		const p: Paint = {
+			clay: `url(#${k}clay)`,
+			arm: `url(#${k}arm)`,
+			leather: `url(#${k}boot)`,
+			wood: `url(#${k}wood)`,
+			gold: `url(#${k}gold)`,
+			recess: `url(#${k}recess)`,
+			red: `url(#${k}red)`,
+		};
+		const { body, prop = "", overlay = "" } = bodies(id, c, p);
+		const [faceX, faceY] = FACE[id] ?? [150, 170];
+		const boots = [0, 1]
+			.map((i) =>
+				group(
+					`translate(${i ? 181 : 119} 302) rotate(${i ? 9 : -9}) scale(${i ? -1 : 1} 1)`,
+					box(-13, -53, 27, 71, 13, p.arm) +
+						path("M-17-13Q-12-20 12-17Q23-17 21-6L20 23Q32 37 14 45H-27Q-45 44-42 29Q-41 12-22 11Z", p.leather) +
+						path("M-42 32Q-24 42 22 32Q27 46 12 47H-28Q-45 45-42 32Z", "#49302b") +
+						line("M-40 33Q-20 43 24 33", "#bd9169", 2.7) +
+						line("M-39 30Q-33 17-19 17M-15-10Q-4-15 13-10", "#f1bd89", 3, 0.55) +
+						[-3, 4, 11]
+							.map(
+								(y, n) =>
+									oval(-15 - n * 2, y, 2.7, 2.7, "#3b2826") +
+									oval(2 - n * 2, y + 2, 2.7, 2.7, "#3b2826") +
+									line(`M${-15 - n * 2} ${y}l17 2`, "#f4d3a6", 2.5),
+							)
+							.join("") +
+						line("M-10 17q-14 9-17 5M-10 17q8 4 10 11", "#dfad7d", 2, 0.7) +
+						line("M-29 26l6 1m-9-5l4 1m36-3l5-1", "#d5a47a", 1.5, 0.65),
+				),
+			)
+			.join("");
+		const raisedLeft = id === "master" || id === "market";
+		const rightY = GRIP[id] ?? 242;
+		const leftArm = path(
+			raisedLeft
+				? "M92 190Q67 201 55 161L35 164Q35 227 83 226Z"
+				: "M111 187Q65 176 45 220Q37 249 59 254Q76 247 76 225L110 211Z",
+			p.arm,
+		);
+		const rightArm = path(`M207 183Q238 183 250 ${rightY - 6}L232 ${rightY + 9}Q219 209 204 222Z`, p.arm);
+		const hand = (x: number, y: number, point = false) =>
+			oval(x, y, 16, 18, p.arm) +
+			oval(x - 10, y - 4, 7, 9, p.clay) +
+			(point ? box(x - 4, y - 31, 10, 29, 5, p.clay) : "") +
+			line(`M${x + 2} ${y + 9}q7 -1 9 -7`, c.deep, 2, 0.65);
+		const leftHand = raisedLeft
+			? hand(44, 151, id === "market") +
+				(id === "master"
+					? group(
+							"rotate(-28 40 147)",
+							box(28, 129, 8, 23, 4, p.arm) + box(38, 124, 9, 27, 4, p.arm) + box(49, 128, 8, 22, 4, p.arm),
+						)
+					: "")
+			: hand(55, 244);
+		const face = group(
+			`translate(${faceX} ${faceY})`,
+			expression(state, p.clay, c.deep, `url(#${k}white)`, `url(#${k}iris)`),
+		);
+		const rightX = id === "finance" ? 234 : id === "support" ? 241 : 238;
+		return boots + leftArm + rightArm + body + overlay + leftHand + face + prop + hand(rightX, rightY + 7);
+	};
+}
+
+export const DRAW: Record<string, Draw> = Object.fromEntries(Object.keys(PALETTES).map((id) => [id, draw(id)]));

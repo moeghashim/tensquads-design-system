@@ -39,7 +39,7 @@ The source face is not shipped. Inter replaces it at the same sizes. Code uses J
 
 ## Mascots
 
-Each agent has one clay toy character. Each body takes its shape from the place the agent is named after. Every mascot has the same soft clay light, big round eyes, a round nose and worn brown boots. No mascot wears glasses. The SVG drawings make the clay light with an SVG filter, so each file stays small.
+Each agent has one clay toy character, designed by GPT-6.2 Sol. Each body takes its shape from the place the agent is named after. Every mascot has the same soft studio light, big glossy brown eyes, a round nose, an open smile, stout hands and scuffed lace-up boots. No mascot wears glasses. The drawings are SVG with gradients, so each file stays small.
 
 | Mascot | Role | Named after | Shape | Pose | Colour |
 |---|---|---|---|---|---|
