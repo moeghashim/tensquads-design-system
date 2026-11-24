@@ -38,7 +38,7 @@ export const PALETTES: Record<string, Palette> = {
 // Where the face sits in the 300 x 370 drawing.
 const FACE: Record<string, readonly [number, number]> = {
 	master: [150, 174],
-	orders: [152, 170],
+	orders: [164, 174],
 	support: [150, 160],
 	marketing: [150, 170],
 	finance: [141, 164],
@@ -46,15 +46,21 @@ const FACE: Record<string, readonly [number, number]> = {
 	market: [148, 176],
 	website: [150, 179],
 	analytics: [150, 158],
-	hr: [142, 175],
+	hr: [139, 175],
 	places: [150, 180],
 	catalog: [150, 150],
 	channels: [150, 158],
 };
 
 // The square that shows the head in a small avatar: x, y and side, in the drawing.
+const BUST_CROPS: Partial<Record<string, readonly [number, number, number]>> = {
+	orders: [52, 25, 232],
+	hr: [32, 38, 242],
+	channels: [63, 53, 228],
+};
+
 export const BUST: Record<string, readonly [number, number, number]> = Object.fromEntries(
-	Object.entries(FACE).map(([id, [x, y]]) => [id, [x - 100, y - 95, 200] as const]),
+	Object.entries(FACE).map(([id, [x, y]]) => [id, BUST_CROPS[id] ?? [x - 100, y - 95, 200]]),
 );
 
 export const INK = "#41252C";
@@ -174,13 +180,16 @@ function bodies(id: string, c: Palette, p: Paint): Body {
 		case "orders":
 			return {
 				body: group(
-					"rotate(9 147 248)",
-					box(96, 79, 112, 187, 30, clay) +
-						arch(114, 43, 74, 54, clay) +
-						arch(135, 55, 30, 32) +
-						oval(150, 76, 8, 11, gold) +
-						[89, 117, 227, 252].map((y) => box(86, y, 131, 13, 6, clay) + glint(`M97 ${y + 3}H198`)).join("") +
-						[103, 131, 159, 187].map((x) => arch(x, 102, 15, 17)).join(""),
+					"rotate(9 150 264)",
+					box(89, 78, 122, 190, 13, clay) +
+						path("M198 90H208V254H198Q204 178 198 90Z", deep, 'opacity=".24"') +
+						box(112, 42, 76, 46, 11, clay) +
+						box(108, 38, 84, 12, 6, clay) +
+						arch(135, 52, 30, 35) +
+						path("M140 77Q143 74 143 67Q150 60 157 67Q157 74 160 77V80H140Z", gold) +
+						oval(150, 81, 3, 3, gold) +
+						[98, 239].map((y) => [98, 127, 156, 185].map((x) => arch(x, y, 17, 24)).join("")).join("") +
+						[87, 119, 228, 259].map((y) => box(82, y, 136, 12, 6, clay) + glint(`M93 ${y + 3}H204`)).join(""),
 				),
 				prop: group(
 					"rotate(-9 219 233)",
@@ -321,18 +330,29 @@ function bodies(id: string, c: Palette, p: Paint): Body {
 						line("M210 232L220 223L229 228L242 213", "#688333", 4),
 				),
 			};
-		case "hr":
+		case "hr": {
+			const shell = (d: string, whiteOpacity: number) =>
+				path(d, clay) +
+				path(d, "white", `fill-opacity="${whiteOpacity}" stroke="${deep}" stroke-opacity=".8" stroke-width="2"`);
+			const ribs = (d: string) => line(d, deep, 3, 0.62);
+
 			return {
 				body:
-					path("M145 237Q149 165 229 103Q225 153 250 197Q266 222 239 251Z", clay) +
-					seam("M225 119Q201 198 192 236") +
+					shell("M48 235C42 185 65 136 90 108Q94 104 94 111C90 146 109 186 137 217L134 238Z", 0.58) +
+					ribs("M88 121Q63 153 60 210M89 122Q77 157 80 217") +
+					shell("M147 231C157 176 195 124 242 94Q246 92 245 97C234 145 243 173 260 208Q267 224 250 238Z", 0.64) +
+					path("M245 97Q224 154 241 231L251 237Q265 228 259 210Q237 163 245 97Z", deep, 'opacity=".22"') +
+					ribs("M238 109Q207 144 203 215M239 110Q223 151 224 223") +
+					shell("M68 227C76 145 126 76 202 47Q207 45 205 50C183 94 185 141 204 185Q218 217 206 237H72Z", 0.76) +
 					path(
-						"M51 238Q48 169 156 68Q180 48 203 49Q175 82 179 119Q186 167 221 219Q235 246 209 259H75Q56 256 51 238Z",
-						clay,
+						"M202 54C182 100 183 148 199 189Q212 220 202 234H189Q199 218 190 190C178 145 177 97 202 54Z",
+						deep,
+						'opacity=".16"',
 					) +
-					glint("M60 220Q86 145 168 77") +
-					seam("M99 126Q124 126 147 106Q169 87 190 68") +
-					box(49, 240, 198, 28, 10, clay),
+					ribs("M195 57Q124 95 95 169M195 58Q150 89 134 120M197 59Q176 89 173 125") +
+					glint("M83 212Q87 195 93 181") +
+					box(49, 232, 203, 34, 10, clay) +
+					line("M61 241H239", light, 3, 0.8),
 				prop: group(
 					"rotate(11 235 229)",
 					box(204, 212, 60, 43, 7, leather) +
@@ -342,6 +362,7 @@ function bodies(id: string, c: Palette, p: Paint): Body {
 						line("M231 226H251M231 235H246", deep, 3),
 				),
 			};
+		}
 		case "places":
 			return {
 				body:
@@ -402,10 +423,14 @@ function bodies(id: string, c: Palette, p: Paint): Body {
 					[63, 84, 201, 222].map((x, i) => arch(x, i === 1 || i === 2 ? 180 : 194, 15, 22)).join("") +
 					glint("M113 225Q145 197 183 219"),
 				prop: group(
-					"rotate(25 241 246)",
-					box(238, 167, 7, 133, 3, wood) +
-						path("M238 272Q225 288 231 315Q241 325 252 315Q257 287 245 272Z", wood) +
-						glint("M238 288Q235 301 237 311"),
+					"rotate(18 238 252)",
+					box(234, 161, 8, 151, 4, wood) +
+						path(
+							"M234 180C233 162 227 147 226 121Q226 112 231 110L243 109Q247 109 247 114C246 141 240 160 242 180Z",
+							wood,
+						) +
+						line("M231 118Q230 140 237 163M237 187V303", "#f2c98e", 2, 0.8) +
+						line("M229 126L244 124", "#774231", 2, 0.5),
 				),
 			};
 	}
