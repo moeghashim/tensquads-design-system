@@ -1,8 +1,8 @@
 {
   "file": "SignIn.dc.html",
   "counts": {
-    "texts": 13,
-    "styles": 132,
+    "texts": 12,
+    "styles": 130,
     "colors": 11,
     "handlers": 3,
     "loops": 1,
@@ -16,7 +16,6 @@
     }
   },
   "texts": [
-    "tensquads",
     "New here?",
     "Start free",
     "Sign in to tensquads",
@@ -77,7 +76,7 @@
   "styles": {
     "display: flex": 10,
     "align-items: center": 7,
-    "color: #0d0d0d": 7,
+    "color: #0d0d0d": 6,
     "font-weight: 500": 6,
     "box-sizing: border-box": 5,
     "font-size: 14px": 5,
@@ -93,7 +92,6 @@
     "background: rgba(13,13,13,.08)": 3,
     "color: #282828": 2,
     "justify-content: space-between": 2,
-    "font-weight: 600": 2,
     "color: #5d5d5d": 2,
     "margin: 0": 2,
     "gap: 6px": 2,
@@ -125,6 +123,7 @@
     "gap: 20px": 1,
     "font-size: 22px": 1,
     "line-height: 28px": 1,
+    "font-weight: 600": 1,
     "letter-spacing: -0.02em": 1,
     "margin: 6px 0 0": 1,
     "padding: 10px 12px": 1,
