@@ -78,6 +78,10 @@ const line = (d: string, stroke: string, w: number, opacity = 1) =>
 		`stroke="${stroke}" stroke-width="${w}"${opacity < 1 ? ` opacity="${opacity}"` : ""} stroke-linecap="round" stroke-linejoin="round"`,
 	);
 const group = (transform: string, content: string) => `<g transform="${transform}">${content}</g>`;
+// A motion part: content wrapped so the class group turns around (x, y), its joint.
+// CSS animates the class group with transform-origin 0 0. The wrapper adds no visible change.
+const part = (x: number, y: number, name: string, content: string) =>
+	`<g transform="translate(${x} ${y})"><g class="${name}"><g transform="translate(${-x} ${-y})">${content}</g></g></g>`;
 const r2 = (n: number) => Number(n.toFixed(2));
 
 const gradient = (id: string, colors: readonly string[], cx = "32%", cy = "23%", r = "78%") =>
@@ -89,7 +93,7 @@ export function defs(k: string, c: Palette): string {
 }
 
 // The soft floor shadow.
-export const shadow = (k: string) => oval(150, 345, 123, 19, `url(#${k}floor)`);
+export const shadow = (k: string) => `<g class="sm-shadow">${oval(150, 345, 123, 19, `url(#${k}floor)`)}</g>`;
 
 // ---- The face: eyes, brows, nose, cheeks and mouth for each state. ----
 function expression(state: FaceState, clay: string, deep: string, white: string, iris: string): string {
@@ -515,7 +519,24 @@ function draw(id: string): Draw {
 			expression(state, p.clay, c.deep, `url(#${k}white)`, `url(#${k}iris)`),
 		);
 		const rightX = id === "finance" ? 234 : id === "support" ? 241 : 238;
-		return boots + leftArm + rightArm + body + overlay + leftHand + face + prop + hand(rightX, rightY + 7);
+		// Motion parts (see SQUADMATE_PARTS in draw.ts). Arms turn at the shoulder, feet at the heel,
+		// the face at its centre, the torso above the boots and the whole mascot at the floor.
+		const armLeft = raisedLeft ? "sm-arm-l sm-raised" : "sm-arm-l";
+		const cut = boots.indexOf('<g transform="translate(181 302)');
+		const torso =
+			part(108, 192, armLeft, leftArm) +
+			part(207, 186, "sm-arm-r", rightArm) +
+			body +
+			overlay +
+			part(108, 192, armLeft, leftHand) +
+			part(faceX, faceY, "sm-face", face) +
+			part(207, 186, "sm-arm-r", prop + hand(rightX, rightY + 7));
+		return part(
+			150,
+			345,
+			"sm-all",
+			part(119, 320, "sm-foot-l", boots.slice(0, cut)) + part(181, 320, "sm-foot-r", boots.slice(cut)) + part(150, 300, "sm-torso", torso),
+		);
 	};
 }
 

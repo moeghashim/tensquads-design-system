@@ -54,7 +54,7 @@ function avatar(mate: Squadmate, state: SquadmateDrawState, size: number): strin
 	const scale = Number((64 / side).toFixed(5));
 	return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="${size}" height="${size}" role="img" aria-label="${mate.name}, ${mate.role}${state === "idle" ? "" : `, ${state}`}">
 ${defs(k, palette)}<g transform="scale(${scale}) translate(${-x} ${-y})">${full ? shadow(k) : ""}${draw(k, palette, state)}</g>
-${badge(state)}
+${badge(state) ? `<g class="sm-badge">${badge(state)}</g>` : ""}
 </svg>`;
 }
 
@@ -63,6 +63,20 @@ export const SQUADMATE_CSS = `<style>
 @keyframes sm-blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
 @media (prefers-reduced-motion:reduce){.sm-blink{animation:none}}
 </style>`;
+
+// Motion hooks in the markup. Each class group turns around its joint with transform-origin 0 0.
+// sm-raised marks a raised left arm (Petra, Machu): swing it only a little, or it crosses the face.
+export const SQUADMATE_PARTS = [
+	{ name: "sm-all", joint: "the floor under the mascot" },
+	{ name: "sm-torso", joint: "above the boots" },
+	{ name: "sm-foot-l", joint: "the left heel" },
+	{ name: "sm-foot-r", joint: "the right heel" },
+	{ name: "sm-arm-l", joint: "the left shoulder" },
+	{ name: "sm-arm-r", joint: "the right shoulder" },
+	{ name: "sm-face", joint: "the face centre" },
+	{ name: "sm-shadow", joint: "none (use transform-box: fill-box)" },
+	{ name: "sm-badge", joint: "none (use transform-box: fill-box)" },
+] as const;
 
 export function squadmateMarkup(imageId: string, state: string, size: number): string {
 	const mate = BY_ID.get(imageId);
